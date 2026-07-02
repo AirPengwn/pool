@@ -1,0 +1,230 @@
+#!/usr/bin/env python3
+"""
+build_site.py -- generate the static dashboard site (_site/) from Pool_Log.xlsx,
+photos/, and the testing guide. Run after append_log.py/format_log.py so the
+site reflects the latest logged data.
+
+Output (_site/, gitignored -- rebuilt fresh every run, never committed):
+  index.html, style.css   copied verbatim from site_src/ (JS reads data.json)
+  data.json               TEST/DOSE rows + season meta, for index.html's charts
+  log.html                full raw log table, generated directly
+  photos.html             day-by-day photo gallery, generated directly
+  photos/*.jpg            resized copies of photos/ (max 1600px, ~q82)
+  Pool_Log.xlsx           copied as-is, for the download link
+  Taylor_K2006_Testing_Guide.docx   copied as-is, for the download link
+
+Usage:  python build_site.py
+"""
+
+import json
+import os
+import shutil
+from datetime import datetime, date
+
+from openpyxl import load_workbook
+from PIL import Image
+
+from append_log import COLS as C, LOG_FILE, SHEET
+import dose as D
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "_site")
+PHOTOS_SRC = os.path.join(HERE, "photos")
+GUIDE_SRC = os.path.join(HERE, "Taylor_K2006_Testing_Guide.docx")
+
+MAX_PHOTO_DIM = 1600
+JPEG_QUALITY = 82
+
+
+def cell(ws, r, key):
+    return ws.cell(r, C[key]).value
+
+
+def load_rows():
+    wb = load_workbook(LOG_FILE, data_only=False)
+    ws = wb[SHEET]
+    tests, doses, all_rows = [], [], []
+    for r in range(3, ws.max_row + 1):
+        typ = cell(ws, r, "type")
+        if not typ:
+            continue
+        row = {k: cell(ws, r, k) for k in C}
+        all_rows.append(row)
+        if typ == "TEST" and isinstance(row["fc"], (int, float)):
+            tests.append(row)
+        elif typ == "DOSE" and isinstance(row["chlorine_gal"], (int, float)):
+            doses.append(row)
+    return tests, doses, all_rows
+
+
+def build_data_json(tests, doses, all_rows):
+    cfg = D.CONFIG
+    floor, aim = D.band_for_cya(cfg["cya_current"], cfg)
+    season_total = round(sum(d["chlorine_gal"] for d in doses), 2)
+    open_row = next((r for r in all_rows if r["type"] and "Open" in str(r["type"])), None)
+    season_open = str(open_row["date"]) if open_row else (str(tests[0]["date"]) if tests else None)
+    data = {
+        "meta": {
+            "generated_at": datetime.now().isoformat(timespec="seconds"),
+            "pool_gallons": cfg["pool_gallons"],
+            "cya_current": cfg["cya_current"],
+            "fc_floor": floor,
+            "fc_aim": aim,
+            "season_open": season_open,
+            "season_total_dose_gal": season_total,
+        },
+        "tests": [
+            {
+                "date": str(t["date"]), "time": t["time"], "fc": t["fc"], "cc": t["cc"],
+                "water_temp": t["water_temp"], "sun_hrs": t["sun_hrs"],
+                "pred_error": t["pred_error"], "photo": t["photo"],
+            }
+            for t in tests
+        ],
+        "doses": [
+            {
+                "date": str(d["date"]), "time": d["time"], "gal": d["chlorine_gal"],
+                "cum": d["cum_cl"], "pred_fc": d["pred_fc"],
+            }
+            for d in doses
+        ],
+    }
+    with open(os.path.join(OUT, "data.json"), "w") as fh:
+        json.dump(data, fh, indent=2, default=str)
+    return data
+
+
+LOG_COLUMNS = [
+    ("date", "Date"), ("time", "Time"), ("type", "Type"), ("ph", "pH"),
+    ("fc", "FC"), ("cc", "CC"), ("fc_loss", "FC loss"), ("pred_fc", "Pred FC"),
+    ("pred_error", "Pred err"), ("ta", "TA"), ("ch", "CH"), ("cya", "CYA"),
+    ("chlorine_gal", "Cl added"), ("cum_cl", "Cum Cl"), ("sun_hrs", "Sun"),
+    ("rain_in", "Rain"), ("fill_gal", "Fill"), ("water_temp", "Water temp"),
+    ("weather", "Weather"), ("photo", "Photo"), ("notes", "Notes"),
+]
+
+
+def esc(v):
+    if v is None:
+        return ""
+    return str(v).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def build_log_html(all_rows):
+    head = "".join(f"<th>{label}</th>" for _, label in LOG_COLUMNS)
+    body_rows = []
+    for row in all_rows:
+        cells = "".join(f"<td>{esc(row[key])}</td>" for key, _ in LOG_COLUMNS)
+        body_rows.append(f"<tr class=\"row-{row['type'].split(' ')[0].lower()}\">{cells}</tr>")
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full log — Guilford pool</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+<a class="wordmark" href="index.html">The pool</a>
+<nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Full log</a><a href="photos.html">Photos</a></nav>
+</header>
+<main class="wide">
+<h1>Full season log</h1>
+<p class="cap">Every logged row, in order. Derived/weather fields are recorded on the daily TEST row; blank elsewhere by design.</p>
+<div class="table-wrap">
+<table class="logtable">
+<thead><tr>{head}</tr></thead>
+<tbody>
+{''.join(body_rows)}
+</tbody>
+</table>
+</div>
+</main>
+</body>
+</html>"""
+    with open(os.path.join(OUT, "log.html"), "w", encoding="utf-8") as fh:
+        fh.write(html)
+
+
+def resize_photo(src_path, dst_path):
+    with Image.open(src_path) as im:
+        im = im.convert("RGB")
+        w, h = im.size
+        if max(w, h) > MAX_PHOTO_DIM:
+            scale = MAX_PHOTO_DIM / max(w, h)
+            im = im.resize((round(w * scale), round(h * scale)), Image.LANCZOS)
+        im.save(dst_path, "JPEG", quality=JPEG_QUALITY, optimize=True)
+
+
+def build_photos(tests):
+    out_photos = os.path.join(OUT, "photos")
+    os.makedirs(out_photos, exist_ok=True)
+    by_date = {}
+    if os.path.isdir(PHOTOS_SRC):
+        for fname in sorted(os.listdir(PHOTOS_SRC)):
+            if not fname.lower().endswith((".jpg", ".jpeg", ".png")):
+                continue
+            day = fname.split("_")[0]
+            src = os.path.join(PHOTOS_SRC, fname)
+            dst = os.path.join(out_photos, fname)
+            resize_photo(src, dst)
+            by_date.setdefault(day, []).append(fname)
+
+    notes_by_date = {str(t["date"]): (t.get("notes") or "") for t in tests}
+    sections = []
+    for day in sorted(by_date, reverse=True):
+        thumbs = "".join(
+            f'<a href="photos/{f}" target="_blank" rel="noopener"><img src="photos/{f}" loading="lazy" alt="Chlorine-check photo, {day}"></a>'
+            for f in by_date[day]
+        )
+        note = notes_by_date.get(day, "")
+        note_html = f'<p class="cap photo-note">{esc(note)}</p>' if note else ""
+        sections.append(f'<section class="photo-day"><h2>{day}</h2>{note_html}<div class="thumbs">{thumbs}</div></section>')
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photos — Guilford pool</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+<a class="wordmark" href="index.html">The pool</a>
+<nav><a href="index.html">Dashboard</a><a href="log.html">Full log</a><a href="photos.html" class="active">Photos</a></nav>
+</header>
+<main class="wide">
+<h1>Chlorine-check photos</h1>
+<p class="cap">Daily clarity/stain-tracking photos, most recent first.</p>
+{''.join(sections)}
+</main>
+</body>
+</html>"""
+    with open(os.path.join(OUT, "photos.html"), "w", encoding="utf-8") as fh:
+        fh.write(html)
+
+
+def main():
+    if os.path.exists(OUT):
+        shutil.rmtree(OUT)
+    os.makedirs(OUT)
+
+    tests, doses, all_rows = load_rows()
+
+    for fname in ("index.html", "style.css"):
+        shutil.copy(os.path.join(HERE, "site_src", fname), os.path.join(OUT, fname))
+
+    build_data_json(tests, doses, all_rows)
+    build_log_html(all_rows)
+    build_photos(tests)
+
+    shutil.copy(LOG_FILE, os.path.join(OUT, "Pool_Log.xlsx"))
+    if os.path.exists(GUIDE_SRC):
+        shutil.copy(GUIDE_SRC, os.path.join(OUT, "Taylor_K2006_Testing_Guide.docx"))
+
+    n_photos = len(os.listdir(os.path.join(OUT, "photos"))) if os.path.isdir(os.path.join(OUT, "photos")) else 0
+    print(f"Built _site/: {len(tests)} test rows, {len(doses)} dose rows, {n_photos} photos.")
+
+
+if __name__ == "__main__":
+    main()

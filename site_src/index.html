@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The pool — Guilford, CT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+<a class="wordmark" href="index.html">The pool</a>
+<nav><a href="index.html" class="active">Dashboard</a><a href="log.html">Full log</a><a href="photos.html">Photos</a></nav>
+</header>
+<main class="wide">
+
+<div id="hero" style="display:flex;justify-content:space-between;align-items:flex-end;margin:12px 0 18px;flex-wrap:wrap;gap:12px;">
+<div>
+<div class="cap" id="heroDate">Loading…</div>
+<div class="cap">Guilford, CT · 34,400 gal vinyl liner</div>
+</div>
+<div id="heroStats" style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;"></div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Chemistry</div>
+<div class="cap" style="margin-bottom:6px;">Free and combined chlorine, season to date</div>
+<div style="position:relative;height:260px;">
+<canvas id="fcChart" role="img" aria-label="Line chart of free and combined chlorine over the season, with the target band shaded"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:baseline;">
+<div>
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Doses</div>
+<div class="cap">Liquid chlorine added each evening</div>
+</div>
+<div style="text-align:right;">
+<div id="doseTotal" style="font-size:22px;font-weight:500;color:var(--coral-dark);">—</div>
+<div class="cap">season total</div>
+</div>
+</div>
+<div style="position:relative;height:200px;margin-top:10px;">
+<canvas id="doseChart" role="img" aria-label="Bar chart of daily liquid chlorine dosed, in gallons"></canvas>
+</div>
+</div>
+
+<div class="card accent">
+<div style="display:flex;justify-content:space-between;align-items:baseline;">
+<div class="serif" style="font-size:16px;">Prediction accuracy</div>
+<span class="pill watch">model in testing</span>
+</div>
+<div class="cap" id="predCaption" style="margin:2px 0 8px;">Predicted vs. actual next-noon FC, evening dose to next test</div>
+<div style="position:relative;height:220px;">
+<canvas id="predChart" role="img" aria-label="Grouped bar chart comparing predicted and actual next-noon free chlorine"></canvas>
+</div>
+<div class="cap" id="predNote" style="margin-top:8px;"></div>
+</div>
+
+<div class="footer-links">
+<a href="photos.html">Photo timeline →</a>
+<a href="log.html">Full log →</a>
+<a href="Pool_Log.xlsx">Download .xlsx →</a>
+<a href="Taylor_K2006_Testing_Guide.docx">How I test →</a>
+</div>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+function fmtDate(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[m-1]} ${d}`;
+}
+
+fetch('data.json').then(r => r.json()).then(data => {
+  const { meta, tests, doses } = data;
+  const latest = tests[tests.length - 1];
+  const prev = tests.length > 1 ? tests[tests.length - 2] : null;
+  const inBand = latest.fc >= meta.fc_floor;
+  const delta = prev ? Math.round((latest.fc - prev.fc) * 10) / 10 : null;
+
+  document.getElementById('heroDate').textContent = `${fmtDate(latest.date)}, ${latest.time}`;
+  document.getElementById('heroStats').innerHTML = `
+    <div style="text-align:right;">
+      <div style="font-size:36px;font-weight:500;color:var(--teal);line-height:1;" class="serif">${latest.fc.toFixed(1)}</div>
+      <div class="cap">free chlorine</div>
+    </div>
+    <span class="pill ${inBand ? 'good' : 'watch'}">${inBand ? 'in target band' : 'below floor'}</span>
+    <div style="text-align:right;">
+      <div style="font-size:16px;font-weight:500;">${latest.cc.toFixed(1)}</div>
+      <div class="cap">combined</div>
+    </div>
+    ${latest.water_temp != null ? `<div style="text-align:right;"><div style="font-size:16px;font-weight:500;">${latest.water_temp.toFixed(1)}°F</div><div class="cap">water</div></div>` : ''}
+  `;
+
+  const dates = tests.map(t => fmtDate(t.date));
+  const fc = tests.map(t => t.fc);
+  const cc = tests.map(t => t.cc);
+  new Chart(document.getElementById('fcChart'), {
+    type: 'line',
+    data: { labels: dates, datasets: [
+      { data: dates.map(() => meta.fc_floor), borderWidth: 0, pointRadius: 0, fill: false, backgroundColor: 'rgba(29,122,150,0.12)' },
+      { data: dates.map(() => meta.fc_aim), borderWidth: 0, pointRadius: 0, fill: '-1', backgroundColor: 'rgba(29,122,150,0.12)' },
+      { data: fc, borderColor: '#1D7A96', backgroundColor: '#1D7A96', borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#1D7A96', tension: 0.25 },
+      { data: cc, borderColor: '#EF9F27', backgroundColor: '#EF9F27', borderWidth: 1.5, pointRadius: 2, tension: 0.25 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { min: 0, suggestedMax: 16, grid: { color: '#EDE6DA' }, ticks: { color: '#8C8478', font: { size: 11 } } },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } } } } }
+  });
+
+  const doseDates = doses.map(d => fmtDate(d.date));
+  const doseGal = doses.map(d => d.gal);
+  document.getElementById('doseTotal').textContent = `${meta.season_total_dose_gal.toFixed(1)} gal`;
+  new Chart(document.getElementById('doseChart'), {
+    type: 'bar',
+    data: { labels: doseDates, datasets: [{ data: doseGal, backgroundColor: '#D2703F', borderRadius: 5, maxBarThickness: 24 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { min: 0, grid: { color: '#EDE6DA' }, ticks: { color: '#8C8478', font: { size: 11 } } },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } } } } }
+  });
+
+  const scored = doses.filter(d => d.pred_fc != null).map(d => {
+    const nextTest = tests.find(t => t.date > d.date);
+    return { predDate: d.date, predFc: d.pred_fc, testDate: nextTest ? nextTest.date : null, actualFc: nextTest ? nextTest.fc : null };
+  });
+  const predLabels = scored.map(s => s.testDate ? fmtDate(s.testDate) : `${fmtDate(s.predDate)} → pending`);
+  new Chart(document.getElementById('predChart'), {
+    type: 'bar',
+    data: { labels: predLabels, datasets: [
+      { label: 'Predicted', data: scored.map(s => s.predFc), backgroundColor: '#B9D9E3', borderRadius: 4, maxBarThickness: 20 },
+      { label: 'Actual', data: scored.map(s => s.actualFc), backgroundColor: '#1D7A96', borderRadius: 4, maxBarThickness: 20 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { min: 0, suggestedMax: 16, grid: { color: '#EDE6DA' }, ticks: { color: '#8C8478', font: { size: 11 } } },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } } } } }
+  });
+
+  const withActual = scored.filter(s => s.actualFc != null);
+  if (withActual.length) {
+    const errs = withActual.map(s => Math.abs(s.actualFc - s.predFc));
+    const mae = (errs.reduce((a, b) => a + b, 0) / errs.length).toFixed(1);
+    const worst = withActual.reduce((a, b) => Math.abs(b.actualFc - b.predFc) > Math.abs(a.actualFc - a.predFc) ? b : a);
+    const pending = scored.length - withActual.length;
+    document.getElementById('predNote').textContent =
+      `Mean error ${mae} ppm across ${withActual.length} scored days. Largest miss: ${fmtDate(worst.testDate)}, ${(worst.actualFc - worst.predFc).toFixed(1)} ppm.` +
+      (pending ? ` ${pending} prediction still pending.` : '');
+  }
+}).catch(err => {
+  document.getElementById('heroDate').textContent = 'Could not load data.json';
+  console.error(err);
+});
+</script>
+</body>
+</html>
