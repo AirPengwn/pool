@@ -170,7 +170,12 @@ def build_log_html(all_rows, photo_days, build_version):
 <script>
 (function () {{
   var btn = document.getElementById('themeToggle');
-  btn.textContent = window.getTheme() === 'dark' ? 'Light mode' : 'Dark mode';
+  function labelToggle() {{
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    btn.innerHTML = window.THEME_ICONS[next === 'dark' ? 'moon' : 'sun'];
+    btn.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+  }}
+  labelToggle();
   btn.addEventListener('click', function () {{
     var next = window.getTheme() === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', next);
@@ -253,16 +258,35 @@ def scan_and_resize_photos():
 
 
 def build_photos(tests, by_date, build_version):
-    notes_by_date = {str(t["date"]): (t.get("notes") or "") for t in tests}
+    floor, _ = D.band_for_cya(D.CONFIG["cya_current"], D.CONFIG)
+    test_by_date = {str(t["date"]): t for t in tests}
+
+    def stat_tile(label, value):
+        return f'<div><div class="stat-label">{label}</div><div class="stat-value">{esc(value)}</div></div>'
+
+    def day_stats_html(day):
+        t = test_by_date.get(day)
+        if not t or not isinstance(t.get("fc"), (int, float)):
+            return ""
+        in_band = t["fc"] >= floor
+        tiles = [
+            f'<div><div class="stat-label">Free chlorine</div><div class="stat-value big serif" style="color:var(--teal);">{t["fc"]:.1f}</div></div>',
+            f'<span class="pill {"good" if in_band else "watch"}">{"in target band" if in_band else "below floor"}</span>',
+            stat_tile("Combined chlorine", f'{t["cc"]:.1f}' if isinstance(t.get("cc"), (int, float)) else "—"),
+        ]
+        if isinstance(t.get("water_temp"), (int, float)):
+            tiles.append(stat_tile("Water temp", f'{t["water_temp"]:.1f}°F'))
+        if isinstance(t.get("sun_hrs"), (int, float)):
+            tiles.append(stat_tile("Sun that day", f'{t["sun_hrs"]:.1f} hrs'))
+        return f'<div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:12px;">{"".join(tiles)}</div>'
+
     sections = []
     for day in sorted(by_date, reverse=True):
         thumbs = "".join(
             f'<img src="photos/{f}" loading="lazy" alt="Chlorine-check photo, {day}">'
             for f in by_date[day]
         )
-        note = notes_by_date.get(day, "")
-        note_html = f'<p class="cap photo-note">{esc(note)}</p>' if note else ""
-        sections.append(f'<section class="photo-day" id="{day}"><h2>{day}</h2><div class="thumbs">{thumbs}</div>{note_html}</section>')
+        sections.append(f'<section class="photo-day" id="{day}"><h2>{day}</h2><div class="thumbs">{thumbs}</div>{day_stats_html(day)}</section>')
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -285,7 +309,12 @@ def build_photos(tests, by_date, build_version):
 <script>
 (function () {{
   var btn = document.getElementById('themeToggle');
-  btn.textContent = window.getTheme() === 'dark' ? 'Light mode' : 'Dark mode';
+  function labelToggle() {{
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    btn.innerHTML = window.THEME_ICONS[next === 'dark' ? 'moon' : 'sun'];
+    btn.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+  }}
+  labelToggle();
   btn.addEventListener('click', function () {{
     var next = window.getTheme() === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', next);

@@ -20,7 +20,12 @@
 <script>
 (function () {
   var btn = document.getElementById('themeToggle');
-  btn.textContent = window.getTheme() === 'dark' ? 'Light mode' : 'Dark mode';
+  function labelToggle() {
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    btn.innerHTML = window.THEME_ICONS[next === 'dark' ? 'moon' : 'sun'];
+    btn.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+  }
+  labelToggle();
   btn.addEventListener('click', function () {
     var next = window.getTheme() === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', next);
@@ -33,7 +38,7 @@
 
 <div class="card" id="heroCard" style="margin:20px 0 16px;">
 <div class="serif" style="font-size:16px;margin-bottom:12px;">Latest check</div>
-<div id="heroBody" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">Loading…</div>
+<div id="heroBody" style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;">Loading…</div>
 </div>
 
 <div class="card">
@@ -153,8 +158,8 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
   new Chart(document.getElementById('predChart'), {
     type: 'bar',
     data: { labels: predLabels, datasets: [
-      { label: 'Predicted', data: scored.map(s => s.predFc), backgroundColor: '#B9D9E3', borderRadius: 4, maxBarThickness: 20 },
-      { label: 'Actual', data: scored.map(s => s.actualFc), backgroundColor: '#1D7A96', borderRadius: 4, maxBarThickness: 20 }
+      { label: 'Predicted', data: scored.map(s => s.predFc), backgroundColor: '#B9D9E3', borderRadius: 4, maxBarThickness: 20, barPercentage: 0.95, categoryPercentage: 0.6 },
+      { label: 'Actual', data: scored.map(s => s.actualFc), backgroundColor: '#1D7A96', borderRadius: 4, maxBarThickness: 20, barPercentage: 0.95, categoryPercentage: 0.6 }
     ]},
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
       scales: { y: { min: 0, suggestedMax: 16, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('FC (ppm)') },

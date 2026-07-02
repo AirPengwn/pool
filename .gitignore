@@ -4,3 +4,4 @@ __pycache__/
 today_input.json
 Pool_Log.backup-*.xlsx
 _site/
+~$*.xlsx
