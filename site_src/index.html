@@ -34,6 +34,12 @@
   });
 })();
 </script>
+<nav class="section-nav">
+<a href="#chemistry">Chemistry trends</a>
+<a href="#correlations">Correlations</a>
+<a href="#usage">Usage &amp; cost</a>
+<a href="#season">Predictions &amp; season</a>
+</nav>
 <main class="wide">
 
 <div class="card" id="heroCard" style="margin:20px 0 16px;">
@@ -51,40 +57,16 @@
 <div id="gaugeLegend" style="display:flex;justify-content:center;gap:16px;margin-top:8px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);"></div>
 </div>
 
+<details class="section" id="chemistry" open>
+<summary class="section-header">Chemistry trends</summary>
+<div class="section-body">
+
 <div class="card">
 <div class="serif" style="font-size:16px;margin-bottom:2px;">Chemistry</div>
 <div class="cap" style="margin-bottom:6px;">Free and combined chlorine, season to date. Shaded band: target range. Dashed line: safe &amp; swimmable ceiling at this pool's CYA level.</div>
 <div style="position:relative;height:290px;">
 <canvas id="fcChart" role="img" aria-label="Line chart of free and combined chlorine over the season, with the target band and a wider safe-and-swimmable band shaded"></canvas>
 </div>
-</div>
-
-<div class="card">
-<div style="display:flex;justify-content:space-between;align-items:baseline;">
-<div>
-<div class="serif" style="font-size:16px;margin-bottom:2px;">Doses</div>
-<div class="cap">Liquid chlorine added each evening</div>
-</div>
-<div style="text-align:right;">
-<div id="doseTotal" style="font-size:22px;font-weight:500;color:var(--coral-dark);">—</div>
-<div class="cap">season total</div>
-</div>
-</div>
-<div style="position:relative;height:200px;margin-top:10px;">
-<canvas id="doseChart" role="img" aria-label="Bar chart of daily liquid chlorine dosed, in gallons"></canvas>
-</div>
-</div>
-
-<div class="card accent">
-<div style="display:flex;justify-content:space-between;align-items:baseline;">
-<div class="serif" style="font-size:16px;">Prediction accuracy</div>
-<span class="pill watch">model in testing</span>
-</div>
-<div class="cap" id="predCaption" style="margin:2px 0 8px;">Predicted vs. actual next-noon FC, evening dose to next test</div>
-<div style="position:relative;height:220px;">
-<canvas id="predChart" role="img" aria-label="Grouped bar chart comparing predicted and actual next-noon free chlorine"></canvas>
-</div>
-<div class="cap" id="predNote" style="margin-top:8px;"></div>
 </div>
 
 <div class="card">
@@ -100,6 +82,37 @@
 <div class="cap" style="margin-bottom:10px;">Every tested day, colored by how much FC it lost. Hover a cell for the exact reading.</div>
 <div id="lossCalendar" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;"></div>
 </div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">pH trend</div>
+<div class="cap" style="margin-bottom:6px;" id="phCaption">Shaded band: ideal range 7.2–7.8</div>
+<div style="position:relative;height:220px;">
+<canvas id="phChart" role="img" aria-label="Line chart of pH over the season with the ideal range shaded"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Total alkalinity over time</div>
+<div class="cap" style="margin-bottom:6px;" id="taCaption">Raw TA reading. Note: at this pool's high CYA, the reading runs high because CYA itself contributes carbonate alkalinity — see the testing guide.</div>
+<div style="position:relative;height:220px;">
+<canvas id="taChart" role="img" aria-label="Line chart of total alkalinity over the season"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">CYA history</div>
+<div class="cap" style="margin-bottom:6px;" id="cyaCaption">Cyanuric acid, rechecked every few weeks (lowered only passively — no active drain-down)</div>
+<div style="position:relative;height:220px;">
+<canvas id="cyaChart" role="img" aria-label="Line chart of cyanuric acid over the season"></canvas>
+</div>
+</div>
+
+</div>
+</details>
+
+<details class="section" id="correlations" open>
+<summary class="section-header">Correlations</summary>
+<div class="section-body">
 
 <div class="card">
 <div class="serif" style="font-size:16px;margin-bottom:2px;">Weather vs. chlorine loss</div>
@@ -133,27 +146,26 @@
 </div>
 </div>
 
-<div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">pH trend</div>
-<div class="cap" style="margin-bottom:6px;" id="phCaption">Shaded band: ideal range 7.2–7.8</div>
-<div style="position:relative;height:220px;">
-<canvas id="phChart" role="img" aria-label="Line chart of pH over the season with the ideal range shaded"></canvas>
 </div>
-</div>
+</details>
+
+<details class="section" id="usage" open>
+<summary class="section-header">Chlorine usage &amp; cost</summary>
+<div class="section-body">
 
 <div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">Total alkalinity over time</div>
-<div class="cap" style="margin-bottom:6px;" id="taCaption">Raw TA reading. Note: at this pool's high CYA, the reading runs high because CYA itself contributes carbonate alkalinity — see the testing guide.</div>
-<div style="position:relative;height:220px;">
-<canvas id="taChart" role="img" aria-label="Line chart of total alkalinity over the season"></canvas>
+<div style="display:flex;justify-content:space-between;align-items:baseline;">
+<div>
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Doses</div>
+<div class="cap">Liquid chlorine added each evening</div>
+</div>
+<div style="text-align:right;">
+<div id="doseTotal" style="font-size:22px;font-weight:500;color:var(--coral-dark);">—</div>
+<div class="cap">season total</div>
 </div>
 </div>
-
-<div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">CYA history</div>
-<div class="cap" style="margin-bottom:6px;" id="cyaCaption">Cyanuric acid, rechecked every few weeks (lowered only passively — no active drain-down)</div>
-<div style="position:relative;height:220px;">
-<canvas id="cyaChart" role="img" aria-label="Line chart of cyanuric acid over the season"></canvas>
+<div style="position:relative;height:200px;margin-top:10px;">
+<canvas id="doseChart" role="img" aria-label="Bar chart of daily liquid chlorine dosed, in gallons"></canvas>
 </div>
 </div>
 
@@ -188,6 +200,35 @@
 </div>
 
 <div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Chemical cost</div>
+<div class="cap" style="margin-bottom:10px;">Enter your price per gallon of liquid chlorine to estimate spend. Nothing is sent anywhere — it's saved in this browser only.</div>
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+<label for="clPrice" style="font-size:13px;color:var(--text-secondary);">$ per gallon (12.5% liquid chlorine)</label>
+<input type="number" id="clPrice" step="0.01" min="0" placeholder="e.g. 4.50" style="width:90px;padding:5px 8px;border-radius:6px;border:0.5px solid var(--border);background:var(--bg);color:var(--text-primary);">
+</div>
+<div id="costBody" style="display:flex;justify-content:center;gap:28px;flex-wrap:wrap;"></div>
+</div>
+
+</div>
+</details>
+
+<details class="section" id="season" open>
+<summary class="section-header">Predictions &amp; season recap</summary>
+<div class="section-body">
+
+<div class="card accent">
+<div style="display:flex;justify-content:space-between;align-items:baseline;">
+<div class="serif" style="font-size:16px;">Prediction accuracy</div>
+<span class="pill watch">model in testing</span>
+</div>
+<div class="cap" id="predCaption" style="margin:2px 0 8px;">Predicted vs. actual next-noon FC, evening dose to next test</div>
+<div style="position:relative;height:220px;">
+<canvas id="predChart" role="img" aria-label="Grouped bar chart comparing predicted and actual next-noon free chlorine"></canvas>
+</div>
+<div class="cap" id="predNote" style="margin-top:8px;"></div>
+</div>
+
+<div class="card">
 <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
 <div class="serif" style="font-size:16px;">Weekly stability score</div>
 <span class="pill watch">first-draft scoring — tune later</span>
@@ -203,17 +244,23 @@
 <div id="seasonalBody" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;"></div>
 </div>
 
-<div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">Chemical cost</div>
-<div class="cap" style="margin-bottom:10px;">Enter your price per gallon of liquid chlorine to estimate spend. Nothing is sent anywhere — it's saved in this browser only.</div>
-<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-<label for="clPrice" style="font-size:13px;color:var(--text-secondary);">$ per gallon (12.5% liquid chlorine)</label>
-<input type="number" id="clPrice" step="0.01" min="0" placeholder="e.g. 4.50" style="width:90px;padding:5px 8px;border-radius:6px;border:0.5px solid var(--border);background:var(--bg);color:var(--text-primary);">
 </div>
-<div id="costBody" style="display:flex;justify-content:center;gap:28px;flex-wrap:wrap;"></div>
-</div>
+</details>
 
 </main>
+<script>
+(function () {
+  document.querySelectorAll('details.section').forEach(function (d) {
+    var key = 'section-' + d.id;
+    var saved = localStorage.getItem(key);
+    if (saved === 'closed') d.removeAttribute('open');
+    else if (saved === 'open') d.setAttribute('open', '');
+    d.addEventListener('toggle', function () {
+      localStorage.setItem(key, d.open ? 'open' : 'closed');
+    });
+  });
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 function fmtDate(iso) {
@@ -561,7 +608,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
   // ---- Chemical cost (client-side price input, nothing fabricated) ----
   const clPriceInput = document.getElementById('clPrice');
   const savedPrice = localStorage.getItem('clPricePerGal');
-  if (savedPrice) clPriceInput.value = savedPrice;
+  clPriceInput.value = savedPrice || '5.99';
   function renderCost() {
     const price = parseFloat(clPriceInput.value);
     const body = document.getElementById('costBody');
