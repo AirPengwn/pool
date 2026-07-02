@@ -68,6 +68,11 @@ main.wide h1, main.full h1 { font-family: 'Fraunces', Georgia, serif; font-weigh
 .hero-date { font-size: 17px; color: var(--text-secondary); }
 .hero-date .loc { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
 
+.hero-thumb { width: 92px; height: 92px; object-fit: cover; border-radius: 10px; border: 0.5px solid var(--border); display: block; flex-shrink: 0; }
+.stat-label { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+.stat-value { font-size: 18px; font-weight: 500; }
+.stat-value.big { font-size: 38px; line-height: 1; }
+
 .card {
   background: var(--surface); border: 0.5px solid var(--border);
   border-radius: var(--radius); padding: 1.1rem 1.25rem; margin-bottom: 16px;

@@ -15,12 +15,9 @@
 </header>
 <main class="wide">
 
-<div id="hero" style="display:flex;justify-content:space-between;align-items:flex-end;margin:20px 0 24px;flex-wrap:wrap;gap:12px;">
-<div class="hero-date">
-<div id="heroDate">Loading…</div>
-<div class="loc">Guilford, CT · 34,400 gal vinyl liner</div>
-</div>
-<div id="heroStats" style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;"></div>
+<div class="card" id="heroCard" style="margin:20px 0 16px;">
+<div class="serif" style="font-size:16px;margin-bottom:12px;">Latest check</div>
+<div id="heroBody" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">Loading…</div>
 </div>
 
 <div class="card">
@@ -77,18 +74,23 @@ fetch('data.json').then(r => r.json()).then(data => {
   const inBand = latest.fc >= meta.fc_floor;
   const delta = prev ? Math.round((latest.fc - prev.fc) * 10) / 10 : null;
 
-  document.getElementById('heroDate').textContent = `${fmtDate(latest.date)}, ${latest.time}`;
-  document.getElementById('heroStats').innerHTML = `
-    <div style="text-align:right;">
-      <div style="font-size:36px;font-weight:500;color:var(--teal);line-height:1;" class="serif">${latest.fc.toFixed(1)}</div>
-      <div class="cap">free chlorine</div>
+  const stat = (label, value) => `<div><div class="stat-label">${label}</div><div class="stat-value">${value}</div></div>`;
+
+  document.getElementById('heroBody').innerHTML = `
+    ${latest.thumb ? `<a href="photos.html#${latest.date}"><img class="hero-thumb" src="photos/${latest.thumb}" alt="Pool photo, ${fmtDate(latest.date)}"></a>` : ''}
+    <div>
+      <div class="stat-label">As of</div>
+      <div class="hero-date" style="font-size:15px;">${fmtDate(latest.date)}, ${latest.time}</div>
+      <div class="loc">Guilford, CT · 34,400 gal vinyl liner</div>
+    </div>
+    <div>
+      <div class="stat-label">Free chlorine</div>
+      <div class="stat-value big serif" style="color:var(--teal);">${latest.fc.toFixed(1)}</div>
     </div>
     <span class="pill ${inBand ? 'good' : 'watch'}">${inBand ? 'in target band' : 'below floor'}</span>
-    <div style="text-align:right;">
-      <div style="font-size:16px;font-weight:500;">${latest.cc.toFixed(1)}</div>
-      <div class="cap">combined</div>
-    </div>
-    ${latest.water_temp != null ? `<div style="text-align:right;"><div style="font-size:16px;font-weight:500;">${latest.water_temp.toFixed(1)}°F</div><div class="cap">water</div></div>` : ''}
+    ${stat('Combined chlorine', latest.cc.toFixed(1))}
+    ${latest.water_temp != null ? stat('Water temp', `${latest.water_temp.toFixed(1)}°F`) : ''}
+    ${latest.sun_hrs != null ? stat('Sun that day', `${latest.sun_hrs.toFixed(1)} hrs`) : ''}
   `;
 
   const axisTitle = text => ({ display: true, text, color: '#8C8478', font: { size: 11, weight: '500' } });
@@ -154,7 +156,7 @@ fetch('data.json').then(r => r.json()).then(data => {
       (pending ? ` ${pending} prediction still pending.` : '');
   }
 }).catch(err => {
-  document.getElementById('heroDate').textContent = 'Could not load data.json';
+  document.getElementById('heroBody').textContent = 'Could not load data.json';
   console.error(err);
 });
 </script>

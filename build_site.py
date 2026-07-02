@@ -57,7 +57,7 @@ def load_rows():
     return tests, doses, all_rows
 
 
-def build_data_json(tests, doses, all_rows):
+def build_data_json(tests, doses, all_rows, photo_by_date):
     cfg = D.CONFIG
     floor, aim = D.band_for_cya(cfg["cya_current"], cfg)
     season_total = round(sum(d["chlorine_gal"] for d in doses), 2)
@@ -77,7 +77,8 @@ def build_data_json(tests, doses, all_rows):
             {
                 "date": str(t["date"]), "time": t["time"], "fc": t["fc"], "cc": t["cc"],
                 "water_temp": t["water_temp"], "sun_hrs": t["sun_hrs"],
-                "pred_error": t["pred_error"], "photo": t["photo"],
+                "pred_error": t["pred_error"],
+                "thumb": (photo_by_date.get(str(t["date"])) or [None])[0],
             }
             for t in tests
         ],
@@ -285,8 +286,8 @@ def main():
     for fname in ("index.html", "style.css"):
         shutil.copy(os.path.join(HERE, "site_src", fname), os.path.join(OUT, fname))
 
-    build_data_json(tests, doses, all_rows)
     by_date = scan_and_resize_photos()
+    build_data_json(tests, doses, all_rows, by_date)
     build_log_html(all_rows, set(by_date.keys()))
     build_photos(tests, by_date)
 
