@@ -1,0 +1,311 @@
+{
+  "meta": {
+    "generated_at": "2026-07-02T16:26:31",
+    "pool_gallons": 34400,
+    "cya_current": 150,
+    "fc_floor": 11,
+    "fc_aim": 15,
+    "season_open": "2026-06-18",
+    "season_total_dose_gal": 18.0
+  },
+  "tests": [
+    {
+      "date": "2026-06-19",
+      "time": "12:01",
+      "fc": 3.4,
+      "cc": 0.2,
+      "water_temp": null,
+      "sun_hrs": 13.7,
+      "pred_error": null,
+      "fc_loss": null,
+      "ph": 7.3,
+      "ta": 140,
+      "cya": "~100",
+      "rain_in": 0,
+      "thumb": null
+    },
+    {
+      "date": "2026-06-20",
+      "time": "12:00",
+      "fc": 4.6,
+      "cc": 0.2,
+      "water_temp": null,
+      "sun_hrs": 14,
+      "pred_error": null,
+      "fc_loss": 4.1,
+      "ph": 7.3,
+      "ta": 130,
+      "cya": ">100",
+      "rain_in": 0,
+      "thumb": null
+    },
+    {
+      "date": "2026-06-21",
+      "time": "11:15",
+      "fc": 10.2,
+      "cc": 0,
+      "water_temp": null,
+      "sun_hrs": 13.6,
+      "pred_error": null,
+      "fc_loss": 1.4,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0,
+      "thumb": null
+    },
+    {
+      "date": "2026-06-22",
+      "time": "11:55",
+      "fc": 12,
+      "cc": 0.4,
+      "water_temp": null,
+      "sun_hrs": 0.3,
+      "pred_error": null,
+      "fc_loss": 3.4,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0.33,
+      "thumb": null
+    },
+    {
+      "date": "2026-06-23",
+      "time": "12:01",
+      "fc": 14,
+      "cc": 0.4,
+      "water_temp": null,
+      "sun_hrs": 0,
+      "pred_error": null,
+      "fc_loss": 1.5,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0.2,
+      "thumb": null
+    },
+    {
+      "date": "2026-06-24",
+      "time": "13:30",
+      "fc": 11.2,
+      "cc": 0,
+      "water_temp": null,
+      "sun_hrs": 13.6,
+      "pred_error": null,
+      "fc_loss": 4.6,
+      "ph": 7.6,
+      "ta": 170,
+      "cya": 150,
+      "rain_in": 0,
+      "thumb": null
+    },
+    {
+      "date": "2026-06-25",
+      "time": "12:30",
+      "fc": 14.4,
+      "cc": 0,
+      "water_temp": null,
+      "sun_hrs": 11.6,
+      "pred_error": null,
+      "fc_loss": 1.2,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0,
+      "thumb": null
+    },
+    {
+      "date": "2026-06-26",
+      "time": "12:25",
+      "fc": 14.2,
+      "cc": 0,
+      "water_temp": null,
+      "sun_hrs": 5.8,
+      "pred_error": null,
+      "fc_loss": 1.1,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 1.36,
+      "thumb": null
+    },
+    {
+      "date": "2026-06-27",
+      "time": "12:35",
+      "fc": 10.6,
+      "cc": 0,
+      "water_temp": null,
+      "sun_hrs": 5.2,
+      "pred_error": null,
+      "fc_loss": 3.6,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0,
+      "thumb": "2026-06-27_1.jpg"
+    },
+    {
+      "date": "2026-06-28",
+      "time": "12:40",
+      "fc": 12.8,
+      "cc": 0.2,
+      "water_temp": 79,
+      "sun_hrs": 9.3,
+      "pred_error": 0,
+      "fc_loss": 3,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0,
+      "thumb": "2026-06-28_1.jpg"
+    },
+    {
+      "date": "2026-06-29",
+      "time": "12:10",
+      "fc": 14,
+      "cc": 0.2,
+      "water_temp": 80,
+      "sun_hrs": 12.2,
+      "pred_error": 1.7,
+      "fc_loss": 2.3,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0,
+      "thumb": "2026-06-29_1.jpg"
+    },
+    {
+      "date": "2026-06-30",
+      "time": "12:15",
+      "fc": 14.6,
+      "cc": 0,
+      "water_temp": 80.5,
+      "sun_hrs": 10.2,
+      "pred_error": 0.4,
+      "fc_loss": 4.7,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0,
+      "thumb": "2026-06-30_1.jpg"
+    },
+    {
+      "date": "2026-07-01",
+      "time": "12:10",
+      "fc": 14.8,
+      "cc": 0.2,
+      "water_temp": 81,
+      "sun_hrs": 12,
+      "pred_error": 0,
+      "fc_loss": 5.1,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0.47,
+      "thumb": "2026-07-01_1.jpg"
+    }
+  ],
+  "doses": [
+    {
+      "date": "2026-06-18",
+      "time": "evening",
+      "gal": 3,
+      "cum": 3,
+      "pred_fc": null
+    },
+    {
+      "date": "2026-06-19",
+      "time": "14:00",
+      "gal": 1.5,
+      "cum": 4.5,
+      "pred_fc": null
+    },
+    {
+      "date": "2026-06-20",
+      "time": "afternoon",
+      "gal": 2,
+      "cum": 6.5,
+      "pred_fc": null
+    },
+    {
+      "date": "2026-06-21",
+      "time": "~11:30",
+      "gal": 1.5,
+      "cum": 8,
+      "pred_fc": null
+    },
+    {
+      "date": "2026-06-22",
+      "time": "12:00",
+      "gal": 1,
+      "cum": 9,
+      "pred_fc": null
+    },
+    {
+      "date": "2026-06-23",
+      "time": "~12:30",
+      "gal": 0.5,
+      "cum": 9.5,
+      "pred_fc": null
+    },
+    {
+      "date": "2026-06-24",
+      "time": "~13:45",
+      "gal": 1.25,
+      "cum": 10.75,
+      "pred_fc": null
+    },
+    {
+      "date": "2026-06-25",
+      "time": "18:30",
+      "gal": 0.25,
+      "cum": 11,
+      "pred_fc": null
+    },
+    {
+      "date": "2026-06-27",
+      "time": "17:35",
+      "gal": 1.5,
+      "cum": 12.5,
+      "pred_fc": 12.8
+    },
+    {
+      "date": "2026-06-28",
+      "time": "~17:55",
+      "gal": 1,
+      "cum": 13.5,
+      "pred_fc": 12.3
+    },
+    {
+      "date": "2026-06-29",
+      "time": "18:30",
+      "gal": 1.5,
+      "cum": 15,
+      "pred_fc": 14.2
+    },
+    {
+      "date": "2026-06-30",
+      "time": "18:50",
+      "gal": 1.5,
+      "cum": 16.5,
+      "pred_fc": 14.8
+    },
+    {
+      "date": "2026-07-01",
+      "time": "19:30",
+      "gal": 1.5,
+      "cum": 18,
+      "pred_fc": 15.1
+    }
+  ],
+  "fills": [
+    {
+      "date": "2026-06-29",
+      "gal": 93
+    },
+    {
+      "date": "2026-06-30",
+      "gal": 158
+    }
+  ]
+}
