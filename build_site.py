@@ -149,16 +149,17 @@ def build_log_html(all_rows, photo_days):
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Full log — Summer 2026 Pool Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
-<nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Full log</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download .xlsx</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Full log</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
 </header>
 <main class="full">
 <h1>Full season log</h1>
-<p class="cap">Every logged row, in order. Derived/weather fields are recorded on the daily TEST row; blank elsewhere by design. Dates with photos link to that day's gallery. Drag the table to pan left/right — the header and season-totals rows stay pinned while you scroll.</p>
 <div class="table-wrap">
 <table class="logtable">
 <thead>
@@ -242,12 +243,14 @@ def build_photos(tests, by_date):
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Photos — Summer 2026 Pool Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
-<nav><a href="index.html">Dashboard</a><a href="log.html">Full log</a><a href="photos.html" class="active">Photos</a><a href="Pool_Log.xlsx">Download .xlsx</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<nav><a href="index.html">Dashboard</a><a href="log.html">Full log</a><a href="photos.html" class="active">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
 </header>
 <main class="wide">
 <h1>Chlorine-check photos</h1>
