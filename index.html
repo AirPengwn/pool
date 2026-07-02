@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="theme.js?v=20260702191442"></script>
+<script src="theme.js?v=20260702192316"></script>
 <title>Summer 2026 Pool Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
-<link rel="stylesheet" href="style.css?v=20260702191442">
+<link rel="stylesheet" href="style.css?v=20260702192316">
 </head>
 <body>
 <header class="masthead">
@@ -28,7 +28,7 @@
   labelToggle();
   btn.addEventListener('click', function () {
     var next = window.getTheme() === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', next);
+    localStorage.setItem('pool_theme', next);
     document.documentElement.setAttribute('data-theme', next);
     location.reload();
   });
@@ -251,7 +251,7 @@
 <script>
 (function () {
   document.querySelectorAll('details.section').forEach(function (d) {
-    var key = 'section-' + d.id;
+    var key = 'pool_section-' + d.id;
     var saved = localStorage.getItem(key);
     if (saved === 'closed') d.removeAttribute('open');
     else if (saved === 'open') d.setAttribute('open', '');
@@ -607,7 +607,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
 
   // ---- Chemical cost (client-side price input, nothing fabricated) ----
   const clPriceInput = document.getElementById('clPrice');
-  const savedPrice = localStorage.getItem('clPricePerGal');
+  const savedPrice = localStorage.getItem('pool_clPricePerGal');
   clPriceInput.value = savedPrice || '5.99';
   function renderCost() {
     const price = parseFloat(clPriceInput.value);
@@ -626,7 +626,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
     `;
   }
   clPriceInput.addEventListener('input', () => {
-    localStorage.setItem('clPricePerGal', clPriceInput.value);
+    localStorage.setItem('pool_clPricePerGal', clPriceInput.value);
     renderCost();
   });
   renderCost();
