@@ -67,7 +67,7 @@ function fmtDate(iso) {
 
 const gridColor = matchMedia('(prefers-color-scheme: dark)').matches ? '#F0EEE8' : '#000000';
 
-fetch('data.json').then(r => r.json()).then(data => {
+fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
   const { meta, tests, doses } = data;
   const latest = tests[tests.length - 1];
   const prev = tests.length > 1 ? tests[tests.length - 2] : null;
