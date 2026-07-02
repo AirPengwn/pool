@@ -110,12 +110,26 @@ def esc(v):
     return str(v).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def build_log_html(all_rows):
+def build_log_html(all_rows, photo_days):
     head = "".join(f"<th>{label}</th>" for _, label in LOG_COLUMNS)
     body_rows = []
+    prev_date, shade = None, True  # first distinct date ends up unshaded (matches the Excel log)
     for row in all_rows:
-        cells = "".join(f"<td>{esc(row[key])}</td>" for key, _ in LOG_COLUMNS)
-        body_rows.append(f"<tr class=\"row-{row['type'].split(' ')[0].lower()}\">{cells}</tr>")
+        d = str(row["date"])
+        if d != prev_date:
+            shade = not shade
+            prev_date = d
+        classes = ["row-" + row["type"].split(" ")[0].lower()]
+        if shade:
+            classes.append("day-alt")
+        cells = []
+        for key, _ in LOG_COLUMNS:
+            val = esc(row[key])
+            if key == "date" and d in photo_days:
+                cells.append(f'<td><a href="photos.html#{d}">{val}</a></td>')
+            else:
+                cells.append(f"<td>{val}</td>")
+        body_rows.append(f'<tr class="{" ".join(classes)}">{"".join(cells)}</tr>')
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -128,9 +142,9 @@ def build_log_html(all_rows):
 <a class="wordmark" href="index.html">The pool</a>
 <nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Full log</a><a href="photos.html">Photos</a></nav>
 </header>
-<main class="wide">
+<main class="full">
 <h1>Full season log</h1>
-<p class="cap">Every logged row, in order. Derived/weather fields are recorded on the daily TEST row; blank elsewhere by design.</p>
+<p class="cap">Every logged row, in order. Derived/weather fields are recorded on the daily TEST row; blank elsewhere by design. Dates with photos link to that day's gallery. Drag the table to pan left/right.</p>
 <div class="table-wrap">
 <table class="logtable">
 <thead><tr>{head}</tr></thead>
@@ -140,6 +154,22 @@ def build_log_html(all_rows):
 </table>
 </div>
 </main>
+<script>
+(function () {{
+  const wrap = document.querySelector('.table-wrap');
+  let isDown = false, startX = 0, startScroll = 0;
+  wrap.addEventListener('mousedown', e => {{
+    isDown = true; wrap.classList.add('dragging');
+    startX = e.pageX; startScroll = wrap.scrollLeft;
+  }});
+  window.addEventListener('mouseup', () => {{ isDown = false; wrap.classList.remove('dragging'); }});
+  window.addEventListener('mousemove', e => {{
+    if (!isDown) return;
+    e.preventDefault();
+    wrap.scrollLeft = startScroll - (e.pageX - startX);
+  }});
+}})();
+</script>
 </body>
 </html>"""
     with open(os.path.join(OUT, "log.html"), "w", encoding="utf-8") as fh:
@@ -156,7 +186,7 @@ def resize_photo(src_path, dst_path):
         im.save(dst_path, "JPEG", quality=JPEG_QUALITY, optimize=True)
 
 
-def build_photos(tests):
+def scan_and_resize_photos():
     out_photos = os.path.join(OUT, "photos")
     os.makedirs(out_photos, exist_ok=True)
     by_date = {}
@@ -169,17 +199,20 @@ def build_photos(tests):
             dst = os.path.join(out_photos, fname)
             resize_photo(src, dst)
             by_date.setdefault(day, []).append(fname)
+    return by_date
 
+
+def build_photos(tests, by_date):
     notes_by_date = {str(t["date"]): (t.get("notes") or "") for t in tests}
     sections = []
     for day in sorted(by_date, reverse=True):
         thumbs = "".join(
-            f'<a href="photos/{f}" target="_blank" rel="noopener"><img src="photos/{f}" loading="lazy" alt="Chlorine-check photo, {day}"></a>'
+            f'<img src="photos/{f}" loading="lazy" alt="Chlorine-check photo, {day}">'
             for f in by_date[day]
         )
         note = notes_by_date.get(day, "")
         note_html = f'<p class="cap photo-note">{esc(note)}</p>' if note else ""
-        sections.append(f'<section class="photo-day"><h2>{day}</h2>{note_html}<div class="thumbs">{thumbs}</div></section>')
+        sections.append(f'<section class="photo-day" id="{day}"><h2>{day}</h2>{note_html}<div class="thumbs">{thumbs}</div></section>')
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -195,9 +228,21 @@ def build_photos(tests):
 </header>
 <main class="wide">
 <h1>Chlorine-check photos</h1>
-<p class="cap">Daily clarity/stain-tracking photos, most recent first.</p>
+<p class="cap">Daily clarity/stain-tracking photos, most recent first. Click a photo to zoom, click again to shrink.</p>
 {''.join(sections)}
 </main>
+<div class="lightbox" id="lightbox"><img id="lightboxImg" src="" alt=""></div>
+<script>
+document.querySelectorAll('.thumbs img').forEach(img => {{
+  img.addEventListener('click', () => {{
+    document.getElementById('lightboxImg').src = img.src;
+    document.getElementById('lightbox').classList.add('open');
+  }});
+}});
+document.getElementById('lightbox').addEventListener('click', () => {{
+  document.getElementById('lightbox').classList.remove('open');
+}});
+</script>
 </body>
 </html>"""
     with open(os.path.join(OUT, "photos.html"), "w", encoding="utf-8") as fh:
@@ -215,8 +260,9 @@ def main():
         shutil.copy(os.path.join(HERE, "site_src", fname), os.path.join(OUT, fname))
 
     build_data_json(tests, doses, all_rows)
-    build_log_html(all_rows)
-    build_photos(tests)
+    by_date = scan_and_resize_photos()
+    build_log_html(all_rows, set(by_date.keys()))
+    build_photos(tests, by_date)
 
     shutil.copy(LOG_FILE, os.path.join(OUT, "Pool_Log.xlsx"))
     if os.path.exists(GUIDE_SRC):
