@@ -235,7 +235,7 @@ def build_photos(tests, by_date):
         )
         note = notes_by_date.get(day, "")
         note_html = f'<p class="cap photo-note">{esc(note)}</p>' if note else ""
-        sections.append(f'<section class="photo-day" id="{day}"><h2>{day}</h2>{note_html}<div class="thumbs">{thumbs}</div></section>')
+        sections.append(f'<section class="photo-day" id="{day}"><h2>{day}</h2><div class="thumbs">{thumbs}</div>{note_html}</section>')
 
     html = f"""<!DOCTYPE html>
 <html lang="en">

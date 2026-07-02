@@ -25,9 +25,9 @@
 
 <div class="card">
 <div class="serif" style="font-size:16px;margin-bottom:2px;">Chemistry</div>
-<div class="cap" style="margin-bottom:6px;">Free and combined chlorine, season to date</div>
-<div style="position:relative;height:260px;">
-<canvas id="fcChart" role="img" aria-label="Line chart of free and combined chlorine over the season, with the target band shaded"></canvas>
+<div class="cap" style="margin-bottom:6px;">Free and combined chlorine, season to date. Darker band: target range. Lighter band: safe &amp; swimmable at this pool's CYA level.</div>
+<div style="position:relative;height:290px;">
+<canvas id="fcChart" role="img" aria-label="Line chart of free and combined chlorine over the season, with the target band and a wider safe-and-swimmable band shaded"></canvas>
 </div>
 </div>
 
@@ -91,20 +91,30 @@ fetch('data.json').then(r => r.json()).then(data => {
     ${latest.water_temp != null ? `<div style="text-align:right;"><div style="font-size:16px;font-weight:500;">${latest.water_temp.toFixed(1)}°F</div><div class="cap">water</div></div>` : ''}
   `;
 
+  const axisTitle = text => ({ display: true, text, color: '#8C8478', font: { size: 11, weight: '500' } });
+
+  // Safe-and-swimmable ceiling: POOL.md notes that at this pool's CYA (~150),
+  // FC up into the "high teens" is safe and fully swimmable -- wider than the
+  // tighter operational target band. Not CYA-scaled (no formula given); revisit
+  // if CYA is re-anchored materially.
+  const SAFE_SWIM_CEILING = 19;
+
   const dates = tests.map(t => fmtDate(t.date));
   const fc = tests.map(t => t.fc);
   const cc = tests.map(t => t.cc);
   new Chart(document.getElementById('fcChart'), {
     type: 'line',
     data: { labels: dates, datasets: [
+      { data: dates.map(() => meta.fc_floor), borderWidth: 0, pointRadius: 0, fill: false, backgroundColor: 'rgba(29,122,150,0.06)' },
+      { data: dates.map(() => SAFE_SWIM_CEILING), borderWidth: 0, pointRadius: 0, fill: '-1', backgroundColor: 'rgba(29,122,150,0.06)' },
       { data: dates.map(() => meta.fc_floor), borderWidth: 0, pointRadius: 0, fill: false, backgroundColor: 'rgba(29,122,150,0.12)' },
       { data: dates.map(() => meta.fc_aim), borderWidth: 0, pointRadius: 0, fill: '-1', backgroundColor: 'rgba(29,122,150,0.12)' },
       { data: fc, borderColor: '#1D7A96', backgroundColor: '#1D7A96', borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#1D7A96', tension: 0.25 },
       { data: cc, borderColor: '#EF9F27', backgroundColor: '#EF9F27', borderWidth: 1.5, pointRadius: 2, tension: 0.25 }
     ]},
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-      scales: { y: { min: 0, suggestedMax: 16, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } } },
-                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } } } } }
+      scales: { y: { min: 0, suggestedMax: 22, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('FC / CC (ppm)') },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
   });
 
   const doseDates = doses.map(d => fmtDate(d.date));
@@ -114,8 +124,8 @@ fetch('data.json').then(r => r.json()).then(data => {
     type: 'bar',
     data: { labels: doseDates, datasets: [{ data: doseGal, backgroundColor: '#D2703F', borderRadius: 5, maxBarThickness: 24 }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-      scales: { y: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } } },
-                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } } } } }
+      scales: { y: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Chlorine dosed (gal)') },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
   });
 
   const scored = doses.filter(d => d.pred_fc != null).map(d => {
@@ -130,8 +140,8 @@ fetch('data.json').then(r => r.json()).then(data => {
       { label: 'Actual', data: scored.map(s => s.actualFc), backgroundColor: '#1D7A96', borderRadius: 4, maxBarThickness: 20 }
     ]},
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-      scales: { y: { min: 0, suggestedMax: 16, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } } },
-                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } } } } }
+      scales: { y: { min: 0, suggestedMax: 16, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('FC (ppm)') },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
   });
 
   const withActual = scored.filter(s => s.actualFc != null);

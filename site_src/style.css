@@ -52,7 +52,7 @@ a:hover { text-decoration: underline; }
 .cap { font-size: 13px; color: var(--text-secondary); }
 
 .masthead {
-  display: flex; justify-content: center; align-items: center; gap: 40px; flex-wrap: wrap;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
   padding: 22px 40px; background: var(--surface); border-bottom: 2px solid var(--teal);
 }
 .masthead .wordmark { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 28px; color: var(--text-primary); }
@@ -94,7 +94,7 @@ table.logtable td a { font-weight: 500; }
 
 .photo-day { margin-bottom: 28px; }
 .photo-day h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 17px; margin-bottom: 4px; }
-.photo-note { margin: 0 0 10px; max-width: 640px; }
+.photo-note { margin: 10px 0 0; max-width: 640px; }
 .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
 .thumbs img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; border: 0.5px solid var(--border); display: block; cursor: zoom-in; }
 
