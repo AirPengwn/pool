@@ -6,16 +6,14 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,16 +22,38 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: python build_site.py
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      # Publishes _site/ to the gh-pages branch via a plain git push (no
+      # third-party action, doesn't touch the Pages Deployments API/OIDC
+      # mechanism that was intermittently getting stuck in "queued"). Clones
+      # the existing gh-pages branch (or starts a fresh one on first run),
+      # replaces its contents with the new build, and commits on top of the
+      # prior history -- so gh-pages accumulates one commit per deploy and
+      # every past version stays browsable via its own git log.
+      - name: Publish to gh-pages branch
+        run: |
+          set -e
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          REMOTE="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+
+          if git ls-remote --exit-code --heads origin gh-pages > /dev/null 2>&1; then
+            git clone --branch gh-pages --single-branch "$REMOTE" gh-pages-out
+          else
+            mkdir gh-pages-out
+            git -C gh-pages-out init -b gh-pages
+          fi
+
+          find gh-pages-out -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp -r _site/. gh-pages-out/
+          touch gh-pages-out/.nojekyll
+
+          cd gh-pages-out
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy ${{ github.sha }}"
+            git push "$REMOTE" gh-pages
+          fi
