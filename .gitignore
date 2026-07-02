@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.claude/settings.local.json
+today_input.json
+Pool_Log.backup-*.xlsx
+_site/

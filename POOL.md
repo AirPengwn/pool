@@ -1,0 +1,180 @@
+# POOL.md — Standing Rules & Context for Pool Maintenance
+
+**This file is the source of truth. Read it fully at the start of every session before doing anything.**
+Owner: John — Guilford, CT. Inground vinyl-liner pool. Season 2026.
+
+---
+
+## How to work with me (Claude Code instructions)
+
+1. At the start of each session, read this file and skim the last ~15 rows of `Pool_Log.xlsx` (Log tab) so you have recent history.
+2. I run the test kit myself at noon and give you the numbers. You do NOT have a sensor — never invent readings.
+3. Daily flow: I give you FC, CC, (sometimes a full panel), and any water-add times **at the noon test**. The **dose is added in the evening (~8–8:30 PM)** — I'll report the actual time after. **Pump runtime is automatic (7 AM–10 PM timer) — I don't report it; assume it.** **You pull the weather yourself** — I don't need to report that either. You:
+   - Run `weather.py` to get current conditions for Guilford, CT and the matching `dose.py` weather bucket. Use that bucket and put the returned string in the Weather column. (If I describe the sky myself, prefer my observation; if `weather.py` fails — no network — fall back to asking me.)
+   - Calculate the chlorine dose with `dose.py` (or the logic below).
+   - Append the timestamped row(s) to the Log tab **in place** using `append_log.py` — edit the file, do not rebuild it. Preserve formatting and column order.
+   - Tell me the dose and any flags (CC creeping, FC out of band, CYA recheck due).
+4. Keep column order exactly: `Date, Time, Type, pH, FC, CC, FC loss (ppm/24h), Pred next-noon FC, Pred error (ppm), TA, CH, CYA, Chlorine added (gal), Cum. Cl (gal), Sun (hrs), Rain (in), Fill (gal), Water temp (°F), Weather, Photo, Notes` (21 columns). **Row 1 = header, row 2 = SEASON TOTALS (live formulas), data starts row 3.** Top two rows are frozen (`freeze_panes = A3`).
+   - **Row 2 "SEASON TOTALS"** (merged A2:D2 label): live Excel `SUM()` formulas over the **Chlorine added (gal)**, **Rain (in)**, and **Fill (gal)** columns (range rows 3–5000, so it auto-includes every future row — no recompute needed). Always reflects the current season total at a glance without scrolling.
+   - **FC loss (ppm/24h)** — on each **TEST** row: `prior TEST FC + (gal dosed since)×3.5 − this TEST FC`. The implied chlorine consumed since the last test. The key field for tuning the loss model and catching real demand early. (Blank/caveat across a reagent change — not comparable.)
+   - **Pred next-noon FC** — on each **DOSE** row: the calibrated evening model's next-noon projection (`daily_calc.py`'s "Projected NEXT-NOON FC"). **Pred error (ppm)** — on the **following TEST** row: `this TEST's FC − the prior DOSE row's Pred next-noon FC` (signed: `+` = actual ran higher than predicted, i.e. loss was over-estimated). See "Prediction tracking" below.
+   - **Cum. Cl (gal)** — on each **DOSE** row: running season total of liquid chlorine added. Tracks cost/usage.
+   - **Sun (hrs)** — actual bright-sunshine hours for that date (`weather.py`), on the **TEST** row. The real driver of FC loss. Get values with `python weather.py --history N`.
+   - **Rain (in)** — daily precip for that date (`weather.py`), on the **TEST** row. Watches CYA dilution.
+   - **Fill (gal)** — on **EVENT - Fill** rows: gallons added via hose (minutes × ~3.1 GPM). Makes well-water top-offs summable data, not just prose in Notes.
+   - **Water temp (°F)** — on the **TEST** row once the ladder/thermometer is in. Warm water raises chlorine demand. **Record the exact reading and keep one decimal (e.g., 80.5) — do NOT round. John values precise data; never round the values he reports.**
+   - **Photo** — filename of the day's chlorine-check photo (see Daily photo below).
+   - Record derived/weather fields on the daily **TEST** row; leave blank on DOSE/PUMP/etc. (cum_cl goes on DOSE rows, fill_gal on EVENT-Fill rows).
+   - **After appending rows, run `python format_log.py`** — re-applies widths, centering (Weather & Notes left+wrapped), number formats, auto row heights, alternating-day gray shading, the totals-row styling, freeze panes, and the thick per-day box borders. Idempotent; presentation only, never touches data.
+   - `append_log.py`'s style template is now the **last existing data row** (dynamic), not a hardcoded row number — stays correct through any future row/column insert.
+5. Type tags: `TEST, DOSE, PUMP, WEATHER, NOTE, EVENT`. For `EVENT`, add a short qualifier so the Type cell says what it was, e.g. `EVENT - Open` (season open), `EVENT - Storm` (rain/TS), `EVENT - Backwash`, `EVENT - Fill`.
+6. Be honest and math-grounded. If a reading looks off or contradicts a rule, say so. Don't reassure me — correct me.
+
+---
+
+## Pool specs
+
+- Volume: ~34,400 gallons (20×40 ft, vinyl liner, sloped 3 ft → 8.5 ft, avg depth 5.75 ft)
+- Pump: Hayward Super Pump SP1600, 3/4 HP, 120V, single-speed. **On an automatic timer: ON 7:00 AM, OFF 10:00 PM daily** (as of 2026-06-23). Assume this runtime by default — do NOT log a daily PUMP row. Only log a PUMP row when it **deviates** (outage, off-schedule manual run, timer change), and note the deviation.
+- Filter: Pentair Nautilus FNS Plus 48 sq ft D.E.; multiport Praher SM10-2D.E.
+- Water source: private well, ~3.1 GPM at the hose (slow — pace any fills).
+- **Level / dilution math:** surface ≈ 800 sq ft (20×40), so **~500 gal changes the level ~1 inch.** Thus 30 min of hose ≈ 93 gal ≈ ~3/16"; ~500 gal of rain per inch falling on the pool. Hot-week evaporation ≈ ¼–½"/day (~125–250 gal). Use these for level-change answers and rain/fill CYA-dilution estimates.
+
+## Chlorine / chemistry approach
+
+- Chlorinate with **Pool Tech 12.5% liquid sodium hypochlorite ONLY**. No trichlor/dichlor/stabilized products (CYA already too high).
+- **Storage:** liquid chlorine kept in the **pool shed — ventilated, in the shade inside its box.** (Good — heat/sun/air degrade hypochlorite; these conditions slow it.)
+- **Dosing rule: 1 gallon raises FC ~3.5 ppm** in this pool (~36 oz per +1 ppm).
+- **Round doses to the nearest half gallon, not quarter** (`dose.py` `dose_round = 0.5`). A quarter gallon is impractical to judge by eye in an opaque jug — half gallons (or a known full/leftover jug) are the practical unit.
+- **CYA currently ~150 (high)** — fresh-reagent anchor 2026-06-24 (was ~160 on old reagents). FC band is keyed to CYA — see table below. When dosing, aim for the top of the band.
+- **Don't fear the top of the band.** At CYA 150, FC anywhere in the band — and up into the high teens — is **safe and fully swimmable** (the high CYA buffers it; effective sanitizer tracks the FC/CYA ratio). So pre-loading to ~16–17 before a hot day or a party is fine. For reference, "shock" level at CYA 150 is ~**60 ppm** (impractical here) — a real reason high CYA is a liability, but not a day-to-day dosing concern.
+- CYA being lowered **passively only** (backwash + fresh water, rain, top-offs). **NO active drain-down** (protect the low-yield well). Recheck CYA every few weeks via dilution test (50/50 pool + distilled, ×2).
+- Don't dose pH/TA/CH routinely, but **don't blanket-ignore TA — monitor it via its effect on pH.** Measured TA ~170 (6/24) is **inflated by high CYA**: subtract ~⅓ of CYA (~50) → true carbonate alkalinity ≈ **120 (normal)**. So TA is not actually high right now. CH ~150 irrelevant on vinyl. **Act on TA only when pH repeatedly drifts above ~7.8–8.0 and won't hold** (high-TA upward bounce) — then lower TA with muriatic acid (+ aeration to bring pH back up). **Flag John when that pattern appears; tell him when it needs dealing with — don't act silently and don't ignore it.**
+- Keep CC at/near 0. CC ≥ 0.5 that persists = flag (possible combined chloramines / not enough FC).
+
+## FC target band by CYA (lower the band as CYA drops)
+
+| CYA  | FC floor | FC target band | Aim when dosing |
+|------|----------|----------------|-----------------|
+| ~150 | 11       | 13–15          | ~15             |
+| 100  | 7        | 7–11           | ~11             |
+| 80   | 6        | 6–9            | ~9              |
+| 50   | 4        | 4–6            | ~6              |
+
+(Interpolate for in-between CYA. The band scales ~7–15% of CYA — floor ≈ CYA×0.07, target top ≈ CYA×0.10.)
+
+## Weather → daily FC loss assumption
+
+- Sunny / dry / high UV: ~4 ppm/day
+- Partly cloudy: ~2.5–3 ppm/day
+- Mostly cloudy / cool: ~1.5–2 ppm/day
+- Rain / overcast all day: ~1 ppm/day (minimal UV)
+
+Use the loss only to sanity-check whether tomorrow will still be in-band; the dose itself targets the top of the band now.
+
+### Evening-dose loss model — CALIBRATED 2026-07-01 (use this for predictions)
+
+From ~2 weeks of data. **Pre-6/24 (old-reagent) data excluded — unreliable.** Fresh-reagent evening-dose data (6/25–7/1) gives a clean model. **We dose in the evening, so predict next-noon FC as:**
+
+> **next_noon_FC = today_noon_FC + dose_gal × 3.5 − L24**
+
+where **L24** (full 24h loss, ppm) keys off the dose-day's full-day sunshine hours + water temp:
+
+| Dose-day conditions | L24 |
+|---|---|
+| Rainy/overcast (sun < 3 h) | ~1.5 |
+| Partly (sun 3–8 h) | ~3 |
+| Sunny, cooler (sun ≥ 8 h, water < 80°F) | ~4 |
+| **Hot & sunny (sun ≥ 8 h AND water ≥ 80°F)** | **~5** |
+
+**Validated:** on the recent clean top-of-band days (6/27→28, 6/29→30, 6/30→01) predictions land within **±0.3 ppm**. Two known misses: **6/25→26** (heavy rain the *next* day, unforeseeable at noon) and **6/28→29** (dosed only 1 gal, so FC carried was low → less absolute loss). **Caveats:** loss scales with the FC level carried (dose to top of band for the model to hold); next-day rain lowers it; ±1 ppm on a 7-point set. All constants live in `dose.py` `CONFIG["evening_l24"]`; `daily_calc.py` prints the recommended evening dose + projection automatically. The old `dose.py` "projected next noon" line uses daytime `weather_loss` and is NOT the evening number — ignore it; use the EVENING-DOSE PLAN block.
+
+**Weather is pulled automatically via `weather.py`** (Open-Meteo, free, no API key, stdlib only — location/tuning in its `CONFIG`). It returns a log-ready Weather string and the matching `dose.py` bucket (sunny/partly/cloudy/rain). **Bucket rule (v2, 2026-06-27):** meaningful precip → `rain`; otherwise by **realized sunshine fraction so far today** (hourly `sunshine_duration` ÷ daylight hours elapsed): ≥60% → sunny, ≥30% → partly, else cloudy. This replaced the old instantaneous-cloud snapshot, which mislabeled a sunny morning as "overcast" when a cloud happened to roll in at test time (6/27). Cloud cover is now only a fallback if hourly data is missing. Run `python weather.py` (human) or `python weather.py --json` (chaining).
+
+### Prediction tracking (forward validation) — started 2026-07-01, moved to dedicated columns 2026-07-01
+
+Log an explicit next-noon FC prediction **each evening** and score it the **next noon**, to watch whether the L24 model holds up *out-of-sample*. Tracked in two dedicated columns (not inline Notes text — that duplicated data and could drift out of sync):
+- **Evening, on the DOSE row:** put `daily_calc.py`'s "Projected NEXT-NOON FC" value in **Pred next-noon FC**.
+- **Noon, on the TEST row:** put `this TEST's FC − the prior DOSE row's Pred next-noon FC` in **Pred error (ppm)** (signed: `+` = actual ran higher than predicted, i.e. we over-estimated loss). Compute the error from the **rounded, displayed** prediction value (not extra hidden precision) so the two columns always subtract consistently if John checks by hand.
+- **In-sample baseline** (model was fit on these — flatters it, so don't read too much into it): 6/27→28 pred 12.8 / actual 12.8 / err **0.0**; 6/28→29 pred 12.3 / actual 14.0 / err **+1.7** (miss: only 1 gal dosed → low FC carried → less absolute loss); 6/29→30 pred 14.2 / actual 14.6 / err **+0.4**; 6/30→01 pred 14.8 / actual 14.8 / err **0.0**. Clean-pair MAE ~0.1; ~0.5 with the miss. (6/25→26 and 6/26→27 excluded — next-day rain / the weather-mislabel false alarm.)
+- **Forward test #1 = 7/1→7/2, predicted 15.1 (row 42).** Out-of-sample errors from here on are the real accuracy measure. Watch whether forward MAE holds ~±0.3; if one weather bucket shows a consistent bias, nudge that constant in `dose.py` `CONFIG["evening_l24"]` and note it here.
+- **Logging mechanics (wired 2026-07-01):** `append_log.py` accepts `pred_fc` / `pred_error` (JSON keys) or `--pred_fc` / `--pred_error` (CLI).
+  - **Noon (fully automatic):** `daily_calc.py` now auto-finds the last DOSE row's `Pred next-noon FC` and prints a `PREDICTION CHECK` block with the error already computed — just copy that number into `rows.json`'s `pred_error`. No manual subtraction.
+  - **Evening (still needs judgment, but no manual arithmetic):** `daily_calc.py`'s "Projected NEXT-NOON FC" uses the model's own auto-recommended dose — if the final pour differs (buffer decisions, half-gallon jug rounding, etc.), that number is wrong for what's actually logged. Recompute it for the real pour with `python dose.py --evening --fc F --sun S --water_temp T --dose FINAL_GAL`, then copy its "Projected NEXT-NOON FC" into `rows.json`'s `pred_fc`. (Confirmed this matters historically: 6/27's own model default was 2.0 gal, but 1.5 was actually poured — using the default would've logged the wrong prediction.)
+  - `daily_calc.py` stays read-only by design (per its docstring) — it never writes to the workbook itself; append_log.py remains the sole writer, after Claude's judgment step.
+
+## Environment (this machine)
+
+- Windows box. **Use `python` (NOT `python3`).** `python3` hits the Microsoft Store stub and fails; `python` is on PATH → `C:\Python314\python.exe` (Python 3.14.3, `openpyxl` 3.1.5 installed). Run scripts as `python dose.py ...` and `python append_log.py ...` (the scripts' `#!/usr/bin/env python3` shebang is harmless and ignored here).
+- **Permissions:** the app's "Allow bypass permissions mode" toggle is ON, and it cuts prompts down a lot, but **not to zero — an occasional command still prompts** (confirmed 2026-07-01, `format_log.py` prompted after several silent runs). Cause unconfirmed; don't burn time re-testing it. `.claude/settings.json`/`settings.local.json` allow-rules and `defaultMode` were tried first and did NOT reliably work — don't retry those. If a prompt appears, just click Always Allow and move on; it's not worth chasing further.
+- **Editing the Word test guide (`.docx`):** use the docx skill's flow — `unpack.py` → edit `word/document.xml` → `pack.py --original …` — but run its scripts with **`PYTHONUTF8=1`**, or they crash on this box's cp1252 default (the validator reads XML / prints a `→`). Needs `defusedxml` + `lxml` (both pip-installed 2026-07-01).
+
+## Daily calc tool (`daily_calc.py`)
+
+To minimize back-and-forth, the noon routine is consolidated into one script:
+1. Write today's readings to `today_input.json` (next to the scripts): `{"date", "time", "fc", "cc", "water_temp", "weather_override"?, "rain_in_override"?}`. Use `weather_override` when the auto weather bucket clearly misjudges the day (e.g. a big daily-precip total from overnight rain makes a currently-clear/sunny midday read as "rain").
+2. Run `python daily_calc.py` (no args) — prints the weather read, sun/rain for the day, the implied FC loss vs. the last TEST (same formula as the FC-loss column), and the `dose.py` recommendation, all in one shot.
+3. Decide the final dose/notes (same judgment as always — e.g. hold buffer on hot/sunny days even if the model says 0), write `rows.json`, then `python append_log.py --json rows.json` and `python format_log.py` as usual.
+
+## Testing method (keep consistent)
+
+- **Full step-by-step for all six tests** (pH, FC, CC, TA, CH, CYA) + tube selection and the Watergram balancing step: [`Taylor_K2006_Testing_Guide.docx`](Taylor_K2006_Testing_Guide.docx) in the project folder. Its reference constants were reconciled to this file on 2026-07-01 (34,400 gal, 3.5 ppm/gal, ~36 oz/ppm).
+- FC/CC: **ALWAYS 25 mL fill, drops × 0.2.**
+- Routine (adopted 2026-06-25): **test at noon, dose in the EVENING.** Test FIRST at noon (I size the dose off that reading) → John adds the chlorine in the evening with the pump still running. **This pool is out of direct sun by ~6:30 PM** (shaded earlier than the ~8:25 sunset), so the dosing window is **~6:30–9:15 PM** — any time in there works. **Hard rule: pour by ~9:15 PM at the latest** so it mixes before the 10 PM pump-off — **never pour at/after pump-off** (unmixed liquid chlorine can bleach the vinyl liner). Why evening: skips peak-UV loss (less chlorine used), puts FC highest overnight when algae risk peaks, and makes next-noon projection more predictable.
+
+---
+
+## Daily photo (chlorine-check picture)
+
+- John saves the day's photo(s) in the **evening (~6:30 PM, when he doses)** — consistent comparison shots — to **`C:\dev\pool\photos\`**, named **`YYYY-MM-DD.jpg`** (match the test date). **So at the noon test the file usually isn't there yet — analyze it that evening or next session; do NOT flag it "missing" at noon.**
+- Record the filename in the **Photo** column of that day's TEST row.
+- **Each day, open and analyze the photo** (Read the image): assess water clarity/cloudiness (early-algae warning before it's obvious), color cast, and **metal-stain progression** on the shallow-end steps/floor (ties to the staining open item). Note anything notable in the TEST row's Notes; flag real changes to John.
+
+## Open items (carry across sessions — update as they resolve)
+
+- **July 5 party (1 PM):** peak sun + heat + bather load. Plan: **Sat 7/4 evening pre-load FC to the top of band (~16–17)** for cushion; **Sun 7/5 test before 1 PM**, small morning top-up if FC slipped (FC ~16 at CYA 150 is swimmable); pump already on 7 AM–10 PM covers the party; **Sun evening test + dose back up** (expect a big bather-load drop); **Mon 7/6 watch CC** (sweat/sunscreen → chloramines; if CC ≥0.5 and holds, push FC higher to burn it off). Stocking extra liquid chlorine (~12–15 gal) for the stretch.
+- **Metal staining (shallow end near returns):** suspected iron/manganese from well water. Confirm with vitamin C / ascorbic acid spot test (In The Swim A+ 2 lb pure ascorbic acid, ordered). Treatment deferred to fall closing (requires dropping FC to ~0). **Photo close-ups 6/27–6/29 show no clearly visible iron/rust stain — normal speckled liner; staining unconfirmed/not visibly progressing. Spot test is the definitive check.**
+- **Sequestrant (prevention):** **Pool Mate Metal Out** (phosphonic acid = good chlorine-stable type). **Status: John buying a 1-qt bottle (with the chlorine run) — on hand but HOLDING, no dose yet (his call).** Dose when the cumulative well water (Fill column total) is meaningful or he decides — e.g. a **~16–24 oz maintenance dose covers the whole hot-week fill stretch** (per-fill metal load is tiny). Label maintenance = 1 qt per 20,000 gal monthly; for this pool ~16–24 oz to establish a residual, then ~1 qt/month or after a big fill. Add with pump running, let circulate; high FC depletes it (hence monthly). Does NOT remove existing stain — that's the fall ascorbic-acid job (the label's "colored water" procedure = same idea: FC→0, pH→6.8).
+- **Reagent refill:** ✅ done — fresh FAS-DPD reagents in use as of 2026-06-24. (Old reagents read CYA high ~160 and gave phantom CC ~0.4.)
+- **CYA recheck:** ✅ done 2026-06-24 — fresh-reagent anchor **CYA ~150** (down from old-reagent ~160). `cya_current` updated to 150 in `dose.py`; band lowered to floor 11 / aim 15. The 160→150 is **both** fresh-reagent re-anchoring **and** ~1–5 ppm of real rain dilution (6/22–6/23, ~250–1,000 gal into 34,400) — can't cleanly separate, but passive lowering is contributing. Recheck again in a few weeks; note rain/top-offs that nudge it down.
+- **CC resolved:** fresh reagents read **CC 0.0** on 6/24 — the 6/22–6/23 0.4 was old-reagent noise, not real chloramine. No action.
+- **TA/pH monitor:** 6/24 read TA 170 / pH 7.6. **CYA-corrected carbonate TA ≈ 120 (normal)** — TA only *looks* high because CYA inflates the reading. No action now. **Trigger to deal with it:** pH repeatedly won't hold below ~7.8–8.0 → then lower TA via muriatic acid + aeration. Flag John at that point.
+
+- **FC demand watch — RESOLVED 2026-06-27 (false alarm):** the 6/26→27 ~3.6 ppm/24h loss looked anomalous only because `weather.py`'s noon snapshot mislabeled a genuinely sunny morning (~5 sunshine hrs, John confirmed "super sunny") as "overcast." It was normal sunny-day loss, not demand. Water clear, no algae, no ladder installed yet. Fixed the tool (sunshine-fraction classifier, v2). **Standing lesson kept: don't skip daily dosing — top to the band each evening;** loss here is variable and skipping let FC dip below floor on 6/27.
+- **Water temp:** now tracked daily (79→81°F range late June/early July, trending up with the heat) — record exact readings, one decimal, never round.
+- **Water-level tracking (idea, not bought):** John considering a **skimmer water-level gauge** for precise level monitoring. Skimmer is ~5" tall, so buy a standard **cut-to-size adhesive graduated strip** (35mm-wide tape sold by the meter) and trim ~6" — not a pre-made small gauge. With a fixed gauge in the skimmer, a daily photo would let Claude read the level to the fraction-of-an-inch; without one, a bare skimmer photo only gives rough up/down trend (camera-angle noise > the ~3/16"/day changes). Not purchased yet.
+- **Daily fills this hot stretch:** John topping off a little most days (well water) to offset evaporation — log each as `EVENT - Fill` with `fill_gal` (minutes × 3.1). Watch the cumulative (Fill total) for the sequestrant trigger and CYA dilution. Cumulative ~251 gal as of 6/30.
+- **Loss-rate tuning — DONE 2026-07-01.** Calibrated the evening-dose L24 model from ~2 weeks of data (see "Evening-dose loss model" above; constants in `dose.py` `CONFIG["evening_l24"]`). Supersedes the earlier hand-wave "~2 ppm" guess, which was too low — real L24 runs ~1.5 (rainy) to ~5 (hot & sunny). Predictions now land ±0.3 ppm on clean days. Re-check the fit after a weather regime change (e.g. first cool/cloudy stretch) or if CYA is re-anchored, since loss scales with the FC band.
+
+## Website (GitHub Pages) — planning started 2026-07-01
+
+John wants this project turned into a public dashboard site, hosted on GitHub Pages, so the log data and photos are viewable online anytime.
+
+- **Architecture:** GitHub Pages is static-only (no server, no writes from the live site) — the daily test/dose/log workflow with Claude stays exactly as it is now (unchanged: `daily_calc.py` → judgment → `rows.json` → `append_log.py` → `format_log.py`). A separate build step turns the current state of `Pool_Log.xlsx` + `photos/` into static HTML/JSON, which gets committed and deployed.
+- **Content scope (John's call):** "everything" — main landing page is entirely chart-driven (FC/CC trend with the target band shaded, dose history + season total, the new prediction-accuracy chart). Secondary pages/links off the main page: a full raw log table, an `xlsx` download link, the `Taylor_K2006_Testing_Guide.docx` testing guide, and a per-day photo gallery/timeline (each day's chlorine-check photos load on their own page, not crammed onto the main page).
+- **Privacy:** explicitly a non-issue — John is fine with pool/yard photos and EXIF data being public ("only be used by me"). No scrubbing needed.
+- **Repo:** John is creating the GitHub repo himself (this machine has no git repo yet — `git init` is step zero once he shares the URL/name).
+- **Push routine — standing authorization (confirmed 2026-07-01):** once the repo exists, daily pushes (branch + merge to main, triggering a Pages rebuild) become part of the normal daily routine, same as running `format_log.py` — **no need to ask before pushing each day.** Report that it's done, same as any other routine step. (This is a durable authorization per John's explicit request, not a one-off approval.)
+- **Design:** John wants a real design pass ("jazz it up"), not a bare data dump. Approach: generate a few independent visual directions first (via a Workflow fan-out for diversity), present as mockups, let John pick/redirect before writing real site code. **Status: 3 design-direction mockups presented 2026-07-01** (see chat for the visuals) — pending John's pick before real site code gets written.
+- **Not yet done:** repo doesn't exist yet, no site code written, no `git init`, no build/deploy pipeline (likely GitHub Actions on push to main). Next steps once John gives a repo URL/name and picks a design direction: init git locally, wire the remote, build the static-site generator (xlsx/photos → HTML/JSON), set up the Actions deploy workflow, then daily pushes become routine.
+
+## Changelog (append notable standing-rule changes here)
+
+- 2026-06-22: Project initialized for Claude Code. Migrated from chat-based upload/download workflow.
+- 2026-06-23: Noted environment (Windows — use `python`/`C:\Python314`, not `python3`). New FAS-DPD reagents expected Thu 6/25; CYA recheck held until then.
+- 2026-06-23: Added `weather.py` (Open-Meteo, no API key) — weather now pulled automatically at noon; user no longer needs to report sky conditions.
+- 2026-06-23: Fresh FAS-DPD reagents arrived early. Full battery + CYA recheck moved up to 2026-06-24 noon.
+- 2026-06-23: Pump put on an automatic 7 AM–10 PM timer. Stop logging daily PUMP rows; assume runtime, log only deviations.
+- 2026-06-25: Switched dosing to the EVENING (~8–8:30 PM, by 9:15 latest). Test stays at noon. Cuts UV loss, better overnight FC, more predictable projections. Project next-noon FC after an evening dose using ~2 ppm loss, not the daytime bucket.
+- 2026-06-27: `weather.py` v2 — bucket now keys off realized sunshine-hours fraction (hourly), not the instantaneous cloud snapshot, which had mislabeled a sunny morning as overcast. Log string now includes "sun so far Xh of Yh daylight."
+- 2026-06-27: Added a **Sun (hrs)** column to the Log — actual daily sunshine hours, recorded on each TEST row. Backfilled 6/19–6/27. `append_log.py` updated (sun_hrs key/arg); `weather.py --history N` fetches daily totals.
+- 2026-06-27: Log presentation cleanup — removed header auto-filter; alternating-day gray shading (`C4C4C4`) with thick per-day box borders + thin inner grid; centered all cells except Weather/Notes (left+wrap); auto row heights. New script `format_log.py` applies all of this idempotently — **run it after every `append_log.py`.**
+- 2026-06-27: Expanded Log to 18 columns — added **FC loss (ppm/24h)**, **Cum. Cl (gal)**, **Rain (in)**, **Water temp (°F)**, **Photo**. Backfilled FC loss / cumulative chlorine / rain / sun for 6/18–6/27. `append_log.py` + `format_log.py` updated for the new layout.
+- 2026-06-27: Started **daily chlorine-check photos** (`photos\YYYY-MM-DD.jpg`) — Claude analyzes each for clarity, early algae, and stain progression.
+- 2026-06-30: Permissions — added `Bash(python:*)` allow-rule in `.claude/settings.json` (no prompts for pool scripts). Scripts made path-independent; photo renaming moved to `file_photos.py` (consistent command). Font unified to Calibri 11 across the sheet; Water temp column now shows one decimal (0.0) — never round reported values.
+- 2026-06-30: Added **Fill (gal)** column and a **SEASON TOTALS row (row 2)** with live SUM formulas over Chlorine/Rain/Fill; data now starts row 3; top 2 rows frozen. `append_log.py` style template made dynamic (last row) instead of a hardcoded row number.
+- 2026-07-01: Resolved the recurring permission-prompt issue — enabled the app's **"Allow bypass permissions mode"** toggle (the real fix; `.claude/settings.json`/`settings.local.json` edits did not reliably work). Added **`daily_calc.py`** to consolidate the noon weather+loss+dose calc into one script driven by `today_input.json`.
+- 2026-06-27: Captured John's manual column widths into `format_log.py` WIDTHS (re-applied every run; re-capture if he readjusts). Added min row height 20 for single-line rows; multi-line rows stay auto. Relabeled the two EVENT rows (`EVENT - Open`, `EVENT - Storm`).
+- 2026-07-01: Fixed a `format_log.py` fill bug — fill colors were 6-digit hex, which openpyxl stores with a transparent `00` alpha, so the SEASON TOTALS row **and** the alternating-day gray shading were rendering white/invisible. All fills now 8-digit ARGB (opaque `FF…`). Row 2 recolored to a more visible blue (`FF9DC3E6`, up from the pale `DDEBF7`) so it stands out under the header; header blue (`FF1F6FB2`) is now hardcoded (was copied from A1, which could silently degrade to white with white text). Gray day-shading (`FFC4C4C4`) now actually shows. **Rule: any fill color in the format scripts must be 8-digit ARGB.**
+- 2026-07-01: Started **forward prediction tracking** (John's request) — each evening logs a next-noon FC prediction on the DOSE row; each noon scores it on the TEST row. Initially inline in Notes text, then **promoted to two dedicated columns same day** (John's follow-up request): **Pred next-noon FC** (col 8) and **Pred error (ppm)** (col 9), inserted right after FC loss — Log is now 21 columns (was 19). Backfilled the in-sample baseline (6/27→28…6/30→01, clean-pair err 0.0/+1.7-miss/+0.4/0.0) into the new columns and trimmed the now-redundant PRED text out of Notes. `append_log.py`/`format_log.py` updated for the new column map (`pred_fc`/`pred_error` keys; error column uses a signed `+0.0;-0.0;0.0` number format). Season-totals SUM formulas (now M2/P2/Q2) fixed after the column insert. Backup taken before the restructure: `Pool_Log.backup-2026-07-01-precolinsert.xlsx`. First true out-of-sample test: 7/1→7/2, predicted 15.1 (row 42). See "Prediction tracking" above.
+- 2026-07-01: Closed the prediction-tracking manual-math gap — `daily_calc.py` now auto-finds last night's DOSE-row prediction and prints the noon `Pred error` already computed (no more manual subtraction). `dose.py` gained a `--evening --dose X` mode so the evening projection can be recomputed for whatever dose actually gets poured (may differ from the model's own default — confirmed on 6/27, where the model's own rec was 2.0 gal but 1.5 was actually dosed). Both tested against real historical/current data (no fabricated readings) before landing.
