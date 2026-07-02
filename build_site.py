@@ -5,8 +5,12 @@ photos/, and the testing guide. Run after append_log.py/format_log.py so the
 site reflects the latest logged data.
 
 Output (_site/, gitignored -- rebuilt fresh every run, never committed):
-  index.html, style.css   copied verbatim from site_src/ (JS reads data.json)
+  index.html              from site_src/, with style.css's href version-busted
+                          (?v=<build timestamp>) so a redeploy never pairs new
+                          HTML against a visitor's stale cached stylesheet
+  style.css               copied verbatim from site_src/
   data.json               TEST/DOSE rows + season meta, for index.html's charts
+                          (fetched with cache: 'no-store' -- always fresh)
   log.html                full raw log table, generated directly
   photos.html             day-by-day photo gallery, generated directly
   photos/*.jpg            resized copies of photos/ (max 1600px, ~q82)
@@ -111,7 +115,7 @@ def esc(v):
     return str(v).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def build_log_html(all_rows, photo_days):
+def build_log_html(all_rows, photo_days, build_version):
     def col_sum(key, places):
         return round(sum(r[key] for r in all_rows if isinstance(r[key], (int, float))), places)
 
@@ -152,7 +156,7 @@ def build_log_html(all_rows, photo_days):
 <title>Full log — Summer 2026 Pool Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v={build_version}">
 </head>
 <body>
 <header class="masthead">
@@ -227,7 +231,7 @@ def scan_and_resize_photos():
     return by_date
 
 
-def build_photos(tests, by_date):
+def build_photos(tests, by_date, build_version):
     notes_by_date = {str(t["date"]): (t.get("notes") or "") for t in tests}
     sections = []
     for day in sorted(by_date, reverse=True):
@@ -246,7 +250,7 @@ def build_photos(tests, by_date):
 <title>Photos — Summer 2026 Pool Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v={build_version}">
 </head>
 <body>
 <header class="masthead">
@@ -281,15 +285,24 @@ def main():
         shutil.rmtree(OUT)
     os.makedirs(OUT)
 
+    # Busts browser caching of style.css on every build -- without this, a
+    # visitor whose browser cached an older stylesheet could see fresh HTML
+    # (new CSS classes) rendered against a stale, non-matching stylesheet.
+    build_version = datetime.now().strftime("%Y%m%d%H%M%S")
+
     tests, doses, all_rows = load_rows()
 
-    for fname in ("index.html", "style.css"):
-        shutil.copy(os.path.join(HERE, "site_src", fname), os.path.join(OUT, fname))
+    shutil.copy(os.path.join(HERE, "site_src", "style.css"), os.path.join(OUT, "style.css"))
+    with open(os.path.join(HERE, "site_src", "index.html"), encoding="utf-8") as fh:
+        index_html = fh.read()
+    index_html = index_html.replace('href="style.css"', f'href="style.css?v={build_version}"')
+    with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as fh:
+        fh.write(index_html)
 
     by_date = scan_and_resize_photos()
     build_data_json(tests, doses, all_rows, by_date)
-    build_log_html(all_rows, set(by_date.keys()))
-    build_photos(tests, by_date)
+    build_log_html(all_rows, set(by_date.keys()), build_version)
+    build_photos(tests, by_date, build_version)
 
     shutil.copy(LOG_FILE, os.path.join(OUT, "Pool_Log.xlsx"))
     if os.path.exists(GUIDE_SRC):
