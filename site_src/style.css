@@ -16,6 +16,7 @@
   --green-soft: #E8F3E8;
   --radius: 12px;
   --row-shade: rgba(120, 110, 95, 0.09);
+  --totals-bg: #DCEAEF;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -32,6 +33,7 @@
     --green-soft: #1B3324;
     --green: #7BC79A;
     --row-shade: rgba(255, 255, 255, 0.05);
+    --totals-bg: #20343A;
   }
 }
 * { box-sizing: border-box; }
@@ -48,7 +50,7 @@ a:hover { text-decoration: underline; }
 .cap { font-size: 13px; color: var(--text-secondary); }
 
 .masthead {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; justify-content: center; align-items: center; gap: 40px;
   padding: 22px 40px; background: var(--surface); border-bottom: 2px solid var(--teal);
 }
 .masthead .wordmark { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 28px; color: var(--text-primary); }
@@ -78,11 +80,15 @@ main.wide h1, main.full h1 { font-family: 'Fraunces', Georgia, serif; font-weigh
   color: var(--text-secondary); padding-top: 14px; margin-top: 4px;
 }
 
-.table-wrap { overflow-x: auto; cursor: grab; }
+.table-wrap {
+  overflow: auto; max-height: 75vh; cursor: grab;
+  border: 0.5px solid var(--border); border-radius: 8px;
+}
 .table-wrap.dragging { cursor: grabbing; user-select: none; }
 table.logtable { border-collapse: collapse; width: 100%; font-size: 13px; white-space: nowrap; }
 table.logtable th, table.logtable td { border: 0.5px solid var(--border); padding: 6px 10px; text-align: left; }
-table.logtable th { background: var(--surface); font-weight: 500; position: sticky; top: 0; }
+table.logtable thead th { background: var(--surface); font-weight: 500; position: sticky; top: 0; z-index: 3; }
+table.logtable tr.totals-row td { background: var(--totals-bg); font-weight: 500; position: sticky; top: 0; z-index: 2; }
 table.logtable td:last-child { white-space: normal; min-width: 520px; }
 table.logtable tr.day-alt td { background: var(--row-shade); }
 table.logtable tr.row-dose td:first-child { border-left: 3px solid var(--coral); }

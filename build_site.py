@@ -111,7 +111,21 @@ def esc(v):
 
 
 def build_log_html(all_rows, photo_days):
+    def col_sum(key, places):
+        return round(sum(r[key] for r in all_rows if isinstance(r[key], (int, float))), places)
+
+    totals = {"chlorine_gal": col_sum("chlorine_gal", 2), "rain_in": col_sum("rain_in", 2), "fill_gal": col_sum("fill_gal", 1)}
+
     head = "".join(f"<th>{label}</th>" for _, label in LOG_COLUMNS)
+
+    totals_cells = ['<td colspan="4">SEASON TOTALS</td>']
+    for i, (key, _) in enumerate(LOG_COLUMNS):
+        if i < 4:
+            continue
+        v = totals.get(key)
+        totals_cells.append(f"<td>{v if v is not None else ''}</td>")
+    totals_row = f'<tr class="totals-row">{"".join(totals_cells)}</tr>'
+
     body_rows = []
     prev_date, shade = None, True  # first distinct date ends up unshaded (matches the Excel log)
     for row in all_rows:
@@ -134,20 +148,23 @@ def build_log_html(all_rows, photo_days):
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Full log — Guilford pool</title>
+<title>Full log — Summer 2026 Pool Data</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="masthead">
-<a class="wordmark" href="index.html">The pool</a>
+<a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
 <nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Full log</a><a href="photos.html">Photos</a></nav>
 </header>
 <main class="full">
 <h1>Full season log</h1>
-<p class="cap">Every logged row, in order. Derived/weather fields are recorded on the daily TEST row; blank elsewhere by design. Dates with photos link to that day's gallery. Drag the table to pan left/right.</p>
+<p class="cap">Every logged row, in order. Derived/weather fields are recorded on the daily TEST row; blank elsewhere by design. Dates with photos link to that day's gallery. Drag the table to pan left/right — the header and season-totals rows stay pinned while you scroll.</p>
 <div class="table-wrap">
 <table class="logtable">
-<thead><tr>{head}</tr></thead>
+<thead>
+<tr>{head}</tr>
+{totals_row}
+</thead>
 <tbody>
 {''.join(body_rows)}
 </tbody>
@@ -157,6 +174,12 @@ def build_log_html(all_rows, photo_days):
 <script>
 (function () {{
   const wrap = document.querySelector('.table-wrap');
+  const headTr = wrap.querySelector('thead tr:first-child');
+  const totalsTr = wrap.querySelector('tr.totals-row');
+  if (headTr && totalsTr) {{
+    const h = headTr.getBoundingClientRect().height;
+    totalsTr.querySelectorAll('td').forEach(td => {{ td.style.top = h + 'px'; }});
+  }}
   let isDown = false, startX = 0, startScroll = 0;
   wrap.addEventListener('mousedown', e => {{
     isDown = true; wrap.classList.add('dragging');
@@ -218,12 +241,12 @@ def build_photos(tests, by_date):
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Photos — Guilford pool</title>
+<title>Photos — Summer 2026 Pool Data</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="masthead">
-<a class="wordmark" href="index.html">The pool</a>
+<a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
 <nav><a href="index.html">Dashboard</a><a href="log.html">Full log</a><a href="photos.html" class="active">Photos</a></nav>
 </header>
 <main class="wide">
