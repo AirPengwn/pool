@@ -154,7 +154,7 @@ def build_log_html(all_rows, photo_days):
 <body>
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
-<nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Full log</a><a href="photos.html">Photos</a></nav>
+<nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Full log</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download .xlsx</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
 </header>
 <main class="full">
 <h1>Full season log</h1>
@@ -247,7 +247,7 @@ def build_photos(tests, by_date):
 <body>
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
-<nav><a href="index.html">Dashboard</a><a href="log.html">Full log</a><a href="photos.html" class="active">Photos</a></nav>
+<nav><a href="index.html">Dashboard</a><a href="log.html">Full log</a><a href="photos.html" class="active">Photos</a><a href="Pool_Log.xlsx">Download .xlsx</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
 </header>
 <main class="wide">
 <h1>Chlorine-check photos</h1>
