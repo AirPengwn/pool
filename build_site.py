@@ -185,7 +185,7 @@ def build_log_html(all_rows, photo_days, build_version):
   labelToggle();
   btn.addEventListener('click', function () {{
     var next = window.getTheme() === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', next);
+    localStorage.setItem('pool_theme', next);
     document.documentElement.setAttribute('data-theme', next);
     location.reload();
   }});
@@ -324,7 +324,7 @@ def build_photos(tests, by_date, build_version):
   labelToggle();
   btn.addEventListener('click', function () {{
     var next = window.getTheme() === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', next);
+    localStorage.setItem('pool_theme', next);
     document.documentElement.setAttribute('data-theme', next);
     location.reload();
   }});
