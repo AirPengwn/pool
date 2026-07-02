@@ -26,7 +26,7 @@ import shutil
 from datetime import datetime, date
 
 from openpyxl import load_workbook
-from PIL import Image
+from PIL import Image, ImageOps
 
 from append_log import COLS as C, LOG_FILE, SHEET
 import dose as D
@@ -153,6 +153,7 @@ def build_log_html(all_rows, photo_days, build_version):
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="theme.js?v={build_version}"></script>
 <title>Full log — Summer 2026 Pool Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
@@ -161,8 +162,23 @@ def build_log_html(all_rows, photo_days, build_version):
 <body>
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
-<nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Full log</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
+<nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Data</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
+</div>
 </header>
+<script>
+(function () {{
+  var btn = document.getElementById('themeToggle');
+  btn.textContent = window.getTheme() === 'dark' ? 'Light mode' : 'Dark mode';
+  btn.addEventListener('click', function () {{
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    location.reload();
+  }});
+}})();
+</script>
 <main class="full">
 <h1>Full season log</h1>
 <div class="table-wrap">
@@ -207,6 +223,11 @@ def build_log_html(all_rows, photo_days, build_version):
 
 def resize_photo(src_path, dst_path):
     with Image.open(src_path) as im:
+        # Phone photos often carry an EXIF orientation tag (raw sensor data is
+        # landscape, tag says "rotate N to display upright") -- most viewers
+        # respect it automatically, but a naive resize+resave silently drops
+        # it, leaving the web copy sideways even though the original is fine.
+        im = ImageOps.exif_transpose(im)
         im = im.convert("RGB")
         w, h = im.size
         if max(w, h) > MAX_PHOTO_DIM:
@@ -247,6 +268,7 @@ def build_photos(tests, by_date, build_version):
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="theme.js?v={build_version}"></script>
 <title>Photos — Summer 2026 Pool Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
@@ -255,8 +277,23 @@ def build_photos(tests, by_date, build_version):
 <body>
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
-<nav><a href="index.html">Dashboard</a><a href="log.html">Full log</a><a href="photos.html" class="active">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
+<nav><a href="index.html">Dashboard</a><a href="log.html">Data</a><a href="photos.html" class="active">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
+</div>
 </header>
+<script>
+(function () {{
+  var btn = document.getElementById('themeToggle');
+  btn.textContent = window.getTheme() === 'dark' ? 'Light mode' : 'Dark mode';
+  btn.addEventListener('click', function () {{
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    location.reload();
+  }});
+}})();
+</script>
 <main class="wide">
 <h1>Chlorine-check photos</h1>
 <p class="cap">Daily clarity/stain-tracking photos, most recent first. Click a photo to zoom, click again to shrink.</p>
@@ -293,9 +330,11 @@ def main():
     tests, doses, all_rows = load_rows()
 
     shutil.copy(os.path.join(HERE, "site_src", "style.css"), os.path.join(OUT, "style.css"))
+    shutil.copy(os.path.join(HERE, "site_src", "theme.js"), os.path.join(OUT, "theme.js"))
     with open(os.path.join(HERE, "site_src", "index.html"), encoding="utf-8") as fh:
         index_html = fh.read()
     index_html = index_html.replace('href="style.css"', f'href="style.css?v={build_version}"')
+    index_html = index_html.replace('src="theme.js"', f'src="theme.js?v={build_version}"')
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as fh:
         fh.write(index_html)
 
