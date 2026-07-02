@@ -42,6 +42,16 @@
 </div>
 
 <div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Free chlorine gauge</div>
+<div class="cap" style="margin-bottom:6px;">Today's FC against the too-low / ideal / high zones</div>
+<div style="position:relative;height:170px;max-width:360px;margin:0 auto;">
+<canvas id="fcGauge" role="img" aria-label="Gauge showing current free chlorine against too-low, ideal, and high zones"></canvas>
+</div>
+<div id="gaugeReadout" style="text-align:center;margin-top:-10px;font-size:15px;color:var(--text-secondary);"></div>
+<div id="gaugeLegend" style="display:flex;justify-content:center;gap:16px;margin-top:8px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);"></div>
+</div>
+
+<div class="card">
 <div class="serif" style="font-size:16px;margin-bottom:2px;">Chemistry</div>
 <div class="cap" style="margin-bottom:6px;">Free and combined chlorine, season to date. Shaded band: target range. Dashed line: safe &amp; swimmable ceiling at this pool's CYA level.</div>
 <div style="position:relative;height:290px;">
@@ -77,6 +87,132 @@
 <div class="cap" id="predNote" style="margin-top:8px;"></div>
 </div>
 
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Daily chlorine loss</div>
+<div class="cap" style="margin-bottom:6px;">FC lost per 24h between tests. Green &lt;2, amber 2–4, red &gt;4 ppm.</div>
+<div style="position:relative;height:220px;">
+<canvas id="fcLossChart" role="img" aria-label="Bar chart of daily free chlorine loss, color-coded by severity"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Chlorine-loss calendar</div>
+<div class="cap" style="margin-bottom:10px;">Every tested day, colored by how much FC it lost. Hover a cell for the exact reading.</div>
+<div id="lossCalendar" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;"></div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Weather vs. chlorine loss</div>
+<div class="cap" style="margin-bottom:6px;">Sun hours that day vs. FC lost by the next test</div>
+<div style="position:relative;height:240px;">
+<canvas id="weatherLossChart" role="img" aria-label="Scatter plot of sun hours versus free chlorine loss"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Water temperature vs. chlorine loss</div>
+<div class="cap" style="margin-bottom:6px;">Warmer water raises chlorine demand</div>
+<div style="position:relative;height:240px;">
+<canvas id="tempLossChart" role="img" aria-label="Scatter plot of water temperature versus free chlorine loss"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Rainfall vs. chlorine loss</div>
+<div class="cap" style="margin-bottom:6px;">Precipitation that day vs. FC lost by the next test</div>
+<div style="position:relative;height:240px;">
+<canvas id="rainLossChart" role="img" aria-label="Scatter plot of rainfall versus free chlorine loss"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Chlorine added vs. FC loss</div>
+<div class="cap" style="margin-bottom:6px;">Gallons dosed since the prior test vs. FC lost by this test</div>
+<div style="position:relative;height:240px;">
+<canvas id="doseLossChart" role="img" aria-label="Scatter plot of chlorine added versus free chlorine loss"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">pH trend</div>
+<div class="cap" style="margin-bottom:6px;" id="phCaption">Shaded band: ideal range 7.2–7.8</div>
+<div style="position:relative;height:220px;">
+<canvas id="phChart" role="img" aria-label="Line chart of pH over the season with the ideal range shaded"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Total alkalinity over time</div>
+<div class="cap" style="margin-bottom:6px;" id="taCaption">Raw TA reading. Note: at this pool's high CYA, the reading runs high because CYA itself contributes carbonate alkalinity — see the testing guide.</div>
+<div style="position:relative;height:220px;">
+<canvas id="taChart" role="img" aria-label="Line chart of total alkalinity over the season"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">CYA history</div>
+<div class="cap" style="margin-bottom:6px;" id="cyaCaption">Cyanuric acid, rechecked every few weeks (lowered only passively — no active drain-down)</div>
+<div style="position:relative;height:220px;">
+<canvas id="cyaChart" role="img" aria-label="Line chart of cyanuric acid over the season"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Cumulative chlorine used</div>
+<div class="cap" style="margin-bottom:6px;">Running season total, gallons of liquid chlorine</div>
+<div style="position:relative;height:220px;">
+<canvas id="cumClChart" role="img" aria-label="Line chart of cumulative chlorine used over the season"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Weekly chlorine usage</div>
+<div class="cap" style="margin-bottom:6px;">Gallons dosed, grouped by week (Sunday–Saturday)</div>
+<div style="position:relative;height:220px;">
+<canvas id="weeklyDoseChart" role="img" aria-label="Bar chart of chlorine used per week"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Fill water added</div>
+<div class="cap" style="margin-bottom:6px;" id="fillCaption">Cumulative well-water top-offs (hose minutes × ~3.1 GPM)</div>
+<div style="position:relative;height:220px;" id="fillChartWrap">
+<canvas id="fillChart" role="img" aria-label="Line chart of cumulative fill water added over the season"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Chlorine efficiency</div>
+<div class="cap" style="margin-bottom:10px;">Experimental metric: average FC maintained per gallon of chlorine used this season. Higher means you're getting more sanitizer per gallon.</div>
+<div id="efficiencyBody" style="display:flex;justify-content:center;gap:28px;flex-wrap:wrap;"></div>
+</div>
+
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
+<div class="serif" style="font-size:16px;">Weekly stability score</div>
+<span class="pill watch">first-draft scoring — tune later</span>
+</div>
+<div class="cap" style="margin:2px 0 8px;">Starts each week at 100. Docked for FC below floor, pH out of range, big day-over-day FC swings, high CC. Credited for tight prediction accuracy. Not a standard industry metric — a first cut, worth adjusting once there's more of a season to tune it against.</div>
+<div style="position:relative;height:200px;">
+<canvas id="stabilityChart" role="img" aria-label="Bar chart of a weekly pool stability score out of 100"></canvas>
+</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:10px;">Season so far</div>
+<div id="seasonalBody" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;"></div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Chemical cost</div>
+<div class="cap" style="margin-bottom:10px;">Enter your price per gallon of liquid chlorine to estimate spend. Nothing is sent anywhere — it's saved in this browser only.</div>
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+<label for="clPrice" style="font-size:13px;color:var(--text-secondary);">$ per gallon (12.5% liquid chlorine)</label>
+<input type="number" id="clPrice" step="0.01" min="0" placeholder="e.g. 4.50" style="width:90px;padding:5px 8px;border-radius:6px;border:0.5px solid var(--border);background:var(--bg);color:var(--text-primary);">
+</div>
+<div id="costBody" style="display:flex;justify-content:center;gap:28px;flex-wrap:wrap;"></div>
+</div>
+
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
@@ -87,9 +223,24 @@ function fmtDate(iso) {
 }
 
 const gridColor = window.getTheme() === 'dark' ? '#F0EEE8' : '#000000';
+const isDark = window.getTheme() === 'dark';
+const COLOR = {
+  teal: isDark ? '#4FA8C4' : '#1D7A96',
+  coral: isDark ? '#E28A5C' : '#D2703F',
+  amber: isDark ? '#F2C879' : '#EF9F27',
+  green: isDark ? '#7BC79A' : '#1E6B3E',
+  red: isDark ? '#E28A5C' : '#B5502A',
+  muted: isDark ? '#8F887D' : '#948C82',
+};
+function lossColor(loss) {
+  if (loss == null) return COLOR.muted;
+  if (loss < 2) return COLOR.green;
+  if (loss < 4) return COLOR.amber;
+  return COLOR.red;
+}
 
 fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
-  const { meta, tests, doses } = data;
+  const { meta, tests, doses, fills } = data;
   const latest = tests[tests.length - 1];
   const prev = tests.length > 1 ? tests[tests.length - 2] : null;
   const inBand = latest.fc >= meta.fc_floor;
@@ -176,6 +327,262 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
       `Mean error ${mae} ppm across ${withActual.length} scored days. Largest miss: ${fmtDate(worst.testDate)}, ${(worst.actualFc - worst.predFc).toFixed(1)} ppm.` +
       (pending ? ` ${pending} prediction still pending.` : '');
   }
+
+  // ---- FC gauge ----
+  const gaugeMax = 25;
+  const zoneData = [meta.fc_floor, SAFE_SWIM_CEILING - meta.fc_floor, gaugeMax - SAFE_SWIM_CEILING];
+  const fcVal = Math.min(latest.fc, gaugeMax);
+  const markerW = 0.35;
+  const needleData = [Math.max(0, fcVal - markerW / 2), markerW, Math.max(0, gaugeMax - fcVal - markerW / 2)];
+  new Chart(document.getElementById('fcGauge'), {
+    type: 'doughnut',
+    data: { datasets: [
+      { data: zoneData, backgroundColor: [COLOR.red, COLOR.green, COLOR.amber], borderWidth: 0, weight: 1 },
+      { data: needleData, backgroundColor: ['rgba(0,0,0,0)', isDark ? '#F3EEE6' : '#262220', 'rgba(0,0,0,0)'], borderWidth: 0, weight: 0.35 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, rotation: -90, circumference: 180, cutout: '62%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+  });
+  document.getElementById('gaugeReadout').innerHTML =
+    `<span class="stat-value big serif" style="color:${COLOR.teal};">${latest.fc.toFixed(1)}</span> <span class="cap">ppm</span>`;
+  document.getElementById('gaugeLegend').innerHTML = `
+    <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${COLOR.red};margin-right:5px;"></span>Too low (&lt;${meta.fc_floor})</span>
+    <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${COLOR.green};margin-right:5px;"></span>Ideal (${meta.fc_floor}–${SAFE_SWIM_CEILING})</span>
+    <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${COLOR.amber};margin-right:5px;"></span>High (&gt;${SAFE_SWIM_CEILING})</span>
+  `;
+
+  // ---- Daily FC loss ----
+  const lossTests = tests.filter(t => t.fc_loss != null);
+  const lossDates = lossTests.map(t => fmtDate(t.date));
+  const lossVals = lossTests.map(t => t.fc_loss);
+  new Chart(document.getElementById('fcLossChart'), {
+    type: 'bar',
+    data: { labels: lossDates, datasets: [{ data: lossVals, backgroundColor: lossVals.map(lossColor), borderRadius: 5, maxBarThickness: 30 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('FC loss (ppm/24h)') },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
+  });
+
+  // ---- Chlorine-loss calendar ----
+  const lossByDate = {};
+  lossTests.forEach(t => { lossByDate[t.date] = t.fc_loss; });
+  const parseUTC = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+  const calStart = parseUTC(tests[0].date);
+  calStart.setUTCDate(calStart.getUTCDate() - calStart.getUTCDay());
+  const calEnd = parseUTC(tests[tests.length - 1].date);
+  const calDays = [];
+  for (let d = new Date(calStart); d <= calEnd; d.setUTCDate(d.getUTCDate() + 1)) calDays.push(new Date(d));
+  const calWeeks = [];
+  for (let i = 0; i < calDays.length; i += 7) calWeeks.push(calDays.slice(i, i + 7));
+  const dowLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  let calHtml = '<div style="display:flex;flex-direction:column;gap:3px;margin-right:2px;">' +
+    dowLabels.map(l => `<div style="font-size:9px;color:var(--text-muted);height:16px;line-height:16px;">${l}</div>`).join('') + '</div>';
+  calWeeks.forEach(week => {
+    calHtml += '<div style="display:flex;flex-direction:column;gap:3px;">';
+    week.forEach(day => {
+      const iso = day.toISOString().slice(0, 10);
+      const loss = lossByDate[iso];
+      const hasData = loss !== undefined;
+      const bg = hasData ? lossColor(loss) : 'var(--row-shade)';
+      const title = hasData ? `${iso}: ${loss.toFixed(1)} ppm/24h` : iso;
+      calHtml += `<div title="${title}" style="width:16px;height:16px;border-radius:3px;background:${bg};opacity:${hasData ? 1 : 0.5};flex-shrink:0;"></div>`;
+    });
+    calHtml += '</div>';
+  });
+  document.getElementById('lossCalendar').innerHTML = calHtml;
+
+  // ---- Scatter charts: weather / temp / rain / dose vs FC loss ----
+  function scatterChart(canvasId, points, color, xLabel) {
+    new Chart(document.getElementById(canvasId), {
+      type: 'scatter',
+      data: { datasets: [{ data: points, backgroundColor: color, pointRadius: 6, pointHoverRadius: 8 }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.raw.label}: ${c.raw.x}, ${c.raw.y.toFixed(1)} ppm loss` } } },
+        scales: { y: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('FC loss (ppm/24h)') },
+                  x: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle(xLabel) } } }
+    });
+  }
+  scatterChart('weatherLossChart', tests.filter(t => t.fc_loss != null && t.sun_hrs != null).map(t => ({ x: t.sun_hrs, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.amber, 'Sun (hrs)');
+  scatterChart('tempLossChart', tests.filter(t => t.fc_loss != null && t.water_temp != null).map(t => ({ x: t.water_temp, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.coral, 'Water temp (°F)');
+  scatterChart('rainLossChart', tests.filter(t => t.fc_loss != null && t.rain_in != null).map(t => ({ x: t.rain_in, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.teal, 'Rain (in)');
+
+  const doseLossPts = [];
+  for (let i = 1; i < tests.length; i++) {
+    const t = tests[i];
+    if (t.fc_loss == null) continue;
+    const prevDate = tests[i - 1].date;
+    const gal = doses.filter(d => d.date > prevDate && d.date <= t.date).reduce((s, d) => s + d.gal, 0);
+    doseLossPts.push({ x: Math.round(gal * 100) / 100, y: t.fc_loss, label: fmtDate(t.date) });
+  }
+  scatterChart('doseLossChart', doseLossPts, COLOR.green, 'Chlorine added (gal)');
+
+  // ---- pH / TA / CYA trends ----
+  function lineChart(canvasId, pts, valueKey, color, yLabel) {
+    const ptDates = pts.map(t => fmtDate(t.date));
+    const ptVals = pts.map(t => t[valueKey]);
+    new Chart(document.getElementById(canvasId), {
+      type: 'line',
+      data: { labels: ptDates, datasets: [{ data: ptVals, borderColor: color, backgroundColor: color, borderWidth: 2.5, pointRadius: 5, tension: 0.2 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { y: { grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle(yLabel) },
+                  x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
+    });
+  }
+  const phPts = tests.filter(t => t.ph != null);
+  new Chart(document.getElementById('phChart'), {
+    type: 'line',
+    data: { labels: phPts.map(t => fmtDate(t.date)), datasets: [
+      { data: phPts.map(() => 7.2), borderWidth: 0, pointRadius: 0, fill: false, backgroundColor: 'rgba(29,122,150,0.18)' },
+      { data: phPts.map(() => 7.8), borderWidth: 0, pointRadius: 0, fill: '-1', backgroundColor: 'rgba(29,122,150,0.18)' },
+      { data: phPts.map(t => t.ph), borderColor: COLOR.teal, backgroundColor: COLOR.teal, borderWidth: 2.5, pointRadius: 5, tension: 0.2 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { suggestedMin: 6.8, suggestedMax: 8.2, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('pH') },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
+  });
+  if (phPts.length < 5) document.getElementById('phCaption').textContent += ` — only ${phPts.length} reading${phPts.length === 1 ? '' : 's'} so far this season.`;
+
+  const taPts = tests.filter(t => t.ta != null);
+  lineChart('taChart', taPts, 'ta', COLOR.amber, 'TA (ppm)');
+  if (taPts.length < 5) document.getElementById('taCaption').textContent += ` Only ${taPts.length} reading${taPts.length === 1 ? '' : 's'} so far.`;
+
+  const cyaPts = tests.filter(t => typeof t.cya === 'number');
+  lineChart('cyaChart', cyaPts, 'cya', COLOR.coral, 'CYA (ppm)');
+  const cyaExcluded = tests.filter(t => t.cya != null && typeof t.cya !== 'number').length;
+  if (cyaPts.length < 5) document.getElementById('cyaCaption').textContent += ` Only ${cyaPts.length} numeric reading${cyaPts.length === 1 ? '' : 's'} so far` +
+    (cyaExcluded ? ` (${cyaExcluded} earlier approximate old-reagent reading${cyaExcluded === 1 ? '' : 's'} excluded).` : '.');
+
+  // ---- Cumulative chlorine used ----
+  new Chart(document.getElementById('cumClChart'), {
+    type: 'line',
+    data: { labels: doseDates, datasets: [{ data: doses.map(d => d.cum), borderColor: COLOR.coral, backgroundColor: 'rgba(210,112,63,0.15)', borderWidth: 2.5, pointRadius: 3, fill: true, tension: 0.15 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Cumulative chlorine (gal)') },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
+  });
+
+  // ---- Weekly chlorine usage ----
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function weekLabel(iso) {
+    const dt = parseUTC(iso);
+    dt.setUTCDate(dt.getUTCDate() - dt.getUTCDay());
+    return `Wk of ${monthNames[dt.getUTCMonth()]} ${dt.getUTCDate()}`;
+  }
+  const weekTotals = {};
+  doses.forEach(d => { const wl = weekLabel(d.date); weekTotals[wl] = (weekTotals[wl] || 0) + d.gal; });
+  const weekLabels = Object.keys(weekTotals);
+  const weekVals = weekLabels.map(l => Math.round(weekTotals[l] * 100) / 100);
+  new Chart(document.getElementById('weeklyDoseChart'), {
+    type: 'bar',
+    data: { labels: weekLabels, datasets: [{ data: weekVals, backgroundColor: COLOR.coral, borderRadius: 5, maxBarThickness: 50 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Chlorine (gal)') },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Week') } } }
+  });
+
+  // ---- Fill water added ----
+  if (!fills.length) {
+    document.getElementById('fillChartWrap').outerHTML = '<div class="cap">No fill events logged yet this season.</div>';
+  } else {
+    let runningFill = 0;
+    const fillCum = fills.map(f => { runningFill += f.gal; return Math.round(runningFill * 10) / 10; });
+    new Chart(document.getElementById('fillChart'), {
+      type: 'line',
+      data: { labels: fills.map(f => fmtDate(f.date)), datasets: [{ data: fillCum, borderColor: COLOR.teal, backgroundColor: 'rgba(29,122,150,0.15)', borderWidth: 2.5, pointRadius: 5, stepped: true, fill: true }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { y: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Cumulative fill (gal)') },
+                  x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
+    });
+  }
+
+  // ---- Chlorine efficiency ----
+  const fcValsAll = tests.map(t => t.fc).filter(v => v != null);
+  const avgFc = fcValsAll.reduce((a, b) => a + b, 0) / fcValsAll.length;
+  const efficiency = meta.season_total_dose_gal ? avgFc / meta.season_total_dose_gal : null;
+  document.getElementById('efficiencyBody').innerHTML = `
+    ${stat('Average FC maintained', avgFc.toFixed(1) + ' ppm')}
+    ${stat('Total chlorine used', meta.season_total_dose_gal.toFixed(1) + ' gal')}
+    ${stat('Efficiency', efficiency != null ? efficiency.toFixed(2) + ' ppm/gal' : '—')}
+  `;
+
+  // ---- Weekly stability score (first-draft rubric, see caption) ----
+  const scoreWeeks = {};
+  function ensureScoreWeek(iso) {
+    const wl = weekLabel(iso);
+    if (!scoreWeeks[wl]) scoreWeeks[wl] = 100;
+    return wl;
+  }
+  tests.forEach(t => {
+    const wl = ensureScoreWeek(t.date);
+    if (t.fc != null && t.fc < meta.fc_floor) scoreWeeks[wl] -= 5;
+    if (t.ph != null && (t.ph < 7.2 || t.ph > 7.8)) scoreWeeks[wl] -= 5;
+    if (t.cc != null && t.cc > 0.5) scoreWeeks[wl] -= 3;
+  });
+  for (let i = 1; i < tests.length; i++) {
+    if (tests[i].fc == null || tests[i - 1].fc == null) continue;
+    if (Math.abs(tests[i].fc - tests[i - 1].fc) > 5) scoreWeeks[ensureScoreWeek(tests[i].date)] -= 3;
+  }
+  withActual.forEach(s => {
+    if (Math.abs(s.actualFc - s.predFc) <= 1) scoreWeeks[ensureScoreWeek(s.testDate)] += 2;
+  });
+  const scoreWeekLabels = Object.keys(scoreWeeks);
+  const scoreWeekVals = scoreWeekLabels.map(l => Math.max(0, Math.min(100, scoreWeeks[l])));
+  new Chart(document.getElementById('stabilityChart'), {
+    type: 'bar',
+    data: { labels: scoreWeekLabels, datasets: [{ data: scoreWeekVals, backgroundColor: scoreWeekVals.map(s => s >= 90 ? COLOR.green : s >= 75 ? COLOR.amber : COLOR.red), borderRadius: 5, maxBarThickness: 60 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { min: 0, max: 100, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Score') },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Week') } } }
+  });
+
+  // ---- Season so far ----
+  const maxBy = key => tests.filter(t => t[key] != null).reduce((a, b) => (!a || b[key] > a[key]) ? b : a, null);
+  const minBy = key => tests.filter(t => t[key] != null).reduce((a, b) => (!a || b[key] < a[key]) ? b : a, null);
+  const hottest = maxBy('water_temp'), sunniest = maxBy('sun_hrs'), rainiest = maxBy('rain_in');
+  const highestFc = maxBy('fc'), lowestFc = minBy('fc');
+  const avgLossVals = tests.map(t => t.fc_loss).filter(v => v != null);
+  const avgLoss = avgLossVals.length ? avgLossVals.reduce((a, b) => a + b, 0) / avgLossVals.length : null;
+  const perfectDays = tests.filter(t => t.fc != null && t.fc >= meta.fc_floor && t.cc != null && t.cc <= 0.5).length;
+  document.getElementById('seasonalBody').innerHTML = `
+    ${stat('Highest FC', highestFc ? `${highestFc.fc.toFixed(1)} ppm (${fmtDate(highestFc.date)})` : '—')}
+    ${stat('Lowest FC', lowestFc ? `${lowestFc.fc.toFixed(1)} ppm (${fmtDate(lowestFc.date)})` : '—')}
+    ${stat('Average FC', avgFc.toFixed(1) + ' ppm')}
+    ${stat('Average FC loss', avgLoss != null ? avgLoss.toFixed(1) + ' ppm/24h' : '—')}
+    ${stat('Hottest water', hottest ? `${hottest.water_temp.toFixed(1)}°F (${fmtDate(hottest.date)})` : '—')}
+    ${stat('Sunniest day', sunniest ? `${sunniest.sun_hrs.toFixed(1)} hrs (${fmtDate(sunniest.date)})` : '—')}
+    ${stat('Rainiest day', rainiest ? `${rainiest.rain_in.toFixed(2)}" (${fmtDate(rainiest.date)})` : '—')}
+    ${stat('Total chlorine used', meta.season_total_dose_gal.toFixed(1) + ' gal')}
+    ${stat('Avg. gal / week', (meta.season_total_dose_gal / Math.max(1, weekLabels.length)).toFixed(1))}
+    ${stat('Tests logged', tests.length)}
+    ${stat('Doses logged', doses.length)}
+    ${stat('"Perfect" days', `${perfectDays} (FC in band + CC ≤0.5)`)}
+  `;
+
+  // ---- Chemical cost (client-side price input, nothing fabricated) ----
+  const clPriceInput = document.getElementById('clPrice');
+  const savedPrice = localStorage.getItem('clPricePerGal');
+  if (savedPrice) clPriceInput.value = savedPrice;
+  function renderCost() {
+    const price = parseFloat(clPriceInput.value);
+    const body = document.getElementById('costBody');
+    if (!price || price <= 0) {
+      body.innerHTML = `<div class="cap">Enter a price above to see season cost.</div>`;
+      return;
+    }
+    const weekGal = weekVals.length ? weekVals[weekVals.length - 1] : 0;
+    const now = tests.length ? tests[tests.length - 1].date : null;
+    const monthGal = now ? doses.filter(d => d.date.slice(0, 7) === now.slice(0, 7)).reduce((s, d) => s + d.gal, 0) : 0;
+    body.innerHTML = `
+      ${stat('This week', '$' + (weekGal * price).toFixed(2))}
+      ${stat('This month', '$' + (monthGal * price).toFixed(2))}
+      ${stat('Season total', '$' + (meta.season_total_dose_gal * price).toFixed(2))}
+    `;
+  }
+  clPriceInput.addEventListener('input', () => {
+    localStorage.setItem('clPricePerGal', clPriceInput.value);
+    renderCost();
+  });
+  renderCost();
 }).catch(err => {
   document.getElementById('heroBody').textContent = 'Could not load data.json';
   console.error(err);

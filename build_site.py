@@ -82,6 +82,8 @@ def build_data_json(tests, doses, all_rows, photo_by_date):
                 "date": str(t["date"]), "time": t["time"], "fc": t["fc"], "cc": t["cc"],
                 "water_temp": t["water_temp"], "sun_hrs": t["sun_hrs"],
                 "pred_error": t["pred_error"],
+                "fc_loss": t["fc_loss"], "ph": t["ph"], "ta": t["ta"], "cya": t["cya"],
+                "rain_in": t["rain_in"],
                 "thumb": (photo_by_date.get(str(t["date"])) or [None])[0],
             }
             for t in tests
@@ -92,6 +94,11 @@ def build_data_json(tests, doses, all_rows, photo_by_date):
                 "cum": d["cum_cl"], "pred_fc": d["pred_fc"],
             }
             for d in doses
+        ],
+        "fills": [
+            {"date": str(r["date"]), "gal": r["fill_gal"]}
+            for r in all_rows
+            if r["type"] and "Fill" in str(r["type"]) and isinstance(r["fill_gal"], (int, float))
         ],
     }
     with open(os.path.join(OUT, "data.json"), "w") as fh:
