@@ -230,6 +230,23 @@
 </div>
 
 <div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Prediction error by day</div>
+<div class="cap" style="margin-bottom:6px;">Actual minus predicted next-noon FC (ppm). Above zero = actual ran higher than predicted, i.e. the model over-estimated loss.</div>
+<div style="position:relative;height:200px;">
+<canvas id="predErrChart" role="img" aria-label="Bar chart of prediction error (actual minus predicted next-noon free chlorine) per day"></canvas>
+</div>
+<div class="cap" id="predErrNote" style="margin-top:8px;"></div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Prediction error vs. sun</div>
+<div class="cap" style="margin-bottom:6px;">Does the model miss more on sunny days? Dose-day sun hours vs. that prediction's error.</div>
+<div style="position:relative;height:220px;">
+<canvas id="predErrSunChart" role="img" aria-label="Scatter plot of prediction error versus dose-day sun hours"></canvas>
+</div>
+</div>
+
+<div class="card">
 <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
 <div class="serif" style="font-size:16px;">Weekly stability score</div>
 <span class="pill watch">first-draft scoring — tune later</span>
@@ -412,6 +429,36 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
       (pending ? ` ${pending} prediction still pending.` : '');
   }
 
+  // ---- Prediction error by day (offshoot of the accuracy chart) ----
+  const errLabels = withActual.map(s => fmtDate(s.testDate));
+  const errVals = withActual.map(s => Math.round((s.actualFc - s.predFc) * 10) / 10);
+  const errColor = e => Math.abs(e) <= 0.5 ? COLOR.green : Math.abs(e) <= 1.5 ? COLOR.amber : COLOR.red;
+  new Chart(document.getElementById('predErrChart'), {
+    type: 'bar',
+    data: { labels: errLabels, datasets: [{ data: errVals, backgroundColor: errVals.map(errColor), borderRadius: 4, maxBarThickness: 40 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.raw >= 0 ? '+' : ''}${c.raw} ppm` } } },
+      scales: { y: { grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Actual − predicted (ppm)') },
+                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
+  });
+  if (withActual.length) {
+    const signed = withActual.map(s => s.actualFc - s.predFc);
+    const meanSigned = signed.reduce((a, b) => a + b, 0) / signed.length;
+    const allNonNeg = signed.every(e => e >= 0);
+    document.getElementById('predErrNote').textContent =
+      `Mean signed error ${meanSigned >= 0 ? '+' : ''}${meanSigned.toFixed(1)} ppm.` +
+      (allNonNeg && withActual.length >= 3 ? ' Every prediction has come in at or below actual — a consistent lean toward over-estimating loss.' : '');
+  }
+
+  // ---- Prediction error vs. sun (does the model miss more on sunny days?) ----
+  const sunByDate = {};
+  tests.forEach(t => { if (t.sun_hrs != null) sunByDate[t.date] = t.sun_hrs; });
+  const errSunPts = withActual
+    .filter(s => sunByDate[s.predDate] != null)
+    .map(s => ({ x: sunByDate[s.predDate], y: Math.round((s.actualFc - s.predFc) * 10) / 10, label: fmtDate(s.testDate) }));
+  scatterChart('predErrSunChart', errSunPts, COLOR.teal, 'Dose-day sun (hrs)', 'circle',
+    { yTitle: 'Pred error (ppm)', tipUnit: 'ppm error', yMin: undefined });
+
   // ---- FC gauge ----
   const gaugeMax = 25;
   const zoneData = [meta.fc_floor, SAFE_SWIM_CEILING - meta.fc_floor, gaugeMax - SAFE_SWIM_CEILING];
@@ -490,7 +537,11 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
     const slope = (n * sxy - sx * sy) / denom;
     return { slope, intercept: (sy - slope * sx) / n };
   }
-  function scatterChart(canvasId, points, color, xLabel, pointStyle) {
+  function scatterChart(canvasId, points, color, xLabel, pointStyle, opts) {
+    opts = opts || {};
+    const yTitle = opts.yTitle || 'FC loss (ppm/24h)';
+    const tipUnit = opts.tipUnit || 'ppm loss';
+    const yMin = ('yMin' in opts) ? opts.yMin : 0;   // pass yMin:undefined to allow negatives / auto-scale
     const datasets = [{
       data: points, backgroundColor: color, borderColor: color,
       pointStyle: pointStyle, pointRadius: 6, pointHoverRadius: 9, order: 0,
@@ -513,8 +564,8 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
       options: { responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false },
           tooltip: { filter: c => c.raw && c.raw.label != null,   // skip trend-line points
-                     callbacks: { label: c => `${c.raw.label}: ${c.raw.x}, ${c.raw.y.toFixed(1)} ppm loss` } } },
-        scales: { y: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('FC loss (ppm/24h)') },
+                     callbacks: { label: c => `${c.raw.label}: ${c.raw.x}, ${c.raw.y.toFixed(1)} ${tipUnit}` } } },
+        scales: { y: { min: yMin, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle(yTitle) },
                   x: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle(xLabel) } } }
     });
   }
