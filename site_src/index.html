@@ -249,6 +249,7 @@
 </details>
 
 </main>
+<button type="button" id="toTop" class="to-top" aria-label="Return to top">&uarr; Top</button>
 <script>
 (function () {
   document.querySelectorAll('details.section').forEach(function (d) {
@@ -259,6 +260,17 @@
     d.addEventListener('toggle', function () {
       localStorage.setItem(key, d.open ? 'open' : 'closed');
     });
+  });
+
+  // Floating "back to top" -- appears once you've scrolled past the hero.
+  var toTop = document.getElementById('toTop');
+  function onScroll() {
+    toTop.classList.toggle('visible', window.scrollY > 400);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+  toTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 })();
 </script>

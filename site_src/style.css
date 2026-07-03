@@ -96,6 +96,19 @@ a:hover { text-decoration: underline; }
 .section-nav a { color: var(--text-secondary); font-weight: 500; }
 .section-nav a:hover { color: var(--teal); text-decoration: none; }
 
+.to-top {
+  position: fixed; bottom: 24px; right: 24px; z-index: 20;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 9px 15px; font-family: inherit; font-size: 13px; font-weight: 500;
+  color: #fff; background: var(--teal);
+  border: none; border-radius: 999px; cursor: pointer;
+  box-shadow: var(--card-shadow);
+  opacity: 0; transform: translateY(10px); pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s ease;
+}
+.to-top.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.to-top:hover { background: var(--coral); }
+
 details.section { scroll-margin-top: 54px; margin-bottom: 8px; }
 details.section .section-body {
   display: flex; flex-direction: column; gap: 16px;
