@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="theme.js?v=20260703010847"></script>
+<script src="theme.js?v=20260703011555"></script>
 <title>Summer 2026 Pool Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
-<link rel="stylesheet" href="style.css?v=20260703010847">
+<link rel="stylesheet" href="style.css?v=20260703011555">
 </head>
 <body>
 <header class="masthead">
@@ -287,7 +287,18 @@ function lossColor(loss) {
 }
 
 fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
-  const { meta, tests, doses, fills } = data;
+  const { meta, tests: allTests, doses, fills } = data;
+  // The dashboard shows ONE canonical reading per day -- the noon (first) test.
+  // Same-day rechecks (e.g. an evening QC re-test to catch a mistake) still live
+  // in the full log table and data.json, but don't drive the dashboard trend,
+  // hero, or derived stats. First-per-date works because the noon test is always
+  // logged before any later recheck (data.json rows are chronological).
+  const seenDates = new Set();
+  const tests = allTests.filter(t => {
+    if (seenDates.has(t.date)) return false;
+    seenDates.add(t.date);
+    return true;
+  });
   const latest = tests[tests.length - 1];
   const prev = tests.length > 1 ? tests[tests.length - 2] : null;
   const inBand = latest.fc >= meta.fc_floor;
@@ -600,7 +611,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
     ${stat('Rainiest day', rainiest ? `${rainiest.rain_in.toFixed(2)}" (${fmtDate(rainiest.date)})` : '—')}
     ${stat('Total chlorine used', meta.season_total_dose_gal.toFixed(1) + ' gal')}
     ${stat('Avg. gal / week', (meta.season_total_dose_gal / Math.max(1, weekLabels.length)).toFixed(1))}
-    ${stat('Tests logged', tests.length)}
+    ${stat('Tests logged', allTests.length)}
     ${stat('Doses logged', doses.length)}
     ${stat('"Perfect" days', `${perfectDays} (FC in band + CC ≤0.5)`)}
   `;
