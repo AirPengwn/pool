@@ -1,12 +1,12 @@
 {
   "meta": {
-    "generated_at": "2026-07-03T16:43:23",
+    "generated_at": "2026-07-03T23:54:23",
     "pool_gallons": 34400,
     "cya_current": 150,
     "fc_floor": 11,
     "fc_aim": 15,
     "season_open": "2026-06-18",
-    "season_total_dose_gal": 19.0
+    "season_total_dose_gal": 20.0
   },
   "tests": [
     {
@@ -263,7 +263,7 @@
       "cya": null,
       "rain_in": 0,
       "water_level_cm": 11.8,
-      "thumb": null
+      "thumb": "2026-07-03_1.jpeg"
     }
   ],
   "doses": [
@@ -364,6 +364,13 @@
       "gal": 1,
       "cum": 19,
       "pred_fc": 15.7
+    },
+    {
+      "date": "2026-07-03",
+      "time": "19:45",
+      "gal": 1,
+      "cum": 20,
+      "pred_fc": 15.1
     }
   ],
   "fills": [
