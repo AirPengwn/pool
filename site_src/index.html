@@ -49,7 +49,7 @@
 
 <div class="card">
 <div class="serif" style="font-size:16px;margin-bottom:2px;">Free chlorine gauge</div>
-<div class="cap" style="margin-bottom:6px;">Today's FC against the too-low / ideal / high zones</div>
+<div class="cap" style="margin-bottom:6px;">Latest FC reading against the too-low / ideal / high zones</div>
 <div style="position:relative;height:170px;max-width:360px;margin:0 auto;">
 <canvas id="fcGauge" role="img" aria-label="Gauge showing current free chlorine against too-low, ideal, and high zones"></canvas>
 </div>
@@ -428,7 +428,8 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
       plugins: { legend: { display: false }, tooltip: { enabled: false } } }
   });
   document.getElementById('gaugeReadout').innerHTML =
-    `<span class="stat-value big serif" style="color:${COLOR.teal};">${latest.fc.toFixed(1)}</span> <span class="cap">ppm</span>`;
+    `<span class="stat-value big serif" style="color:${COLOR.teal};">${latest.fc.toFixed(1)}</span> <span class="cap">ppm</span>` +
+    `<div class="cap" style="margin-top:2px;">as of ${fmtDate(latest.date)}, ${latest.time}</div>`;
   document.getElementById('gaugeLegend').innerHTML = `
     <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${COLOR.red};margin-right:5px;"></span>Too low (&lt;${meta.fc_floor})</span>
     <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${COLOR.green};margin-right:5px;"></span>Ideal (${meta.fc_floor}–${SAFE_SWIM_CEILING})</span>
