@@ -464,19 +464,50 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
   document.getElementById('lossCalendar').innerHTML = calHtml;
 
   // ---- Scatter charts: weather / temp / rain / dose vs FC loss ----
-  function scatterChart(canvasId, points, color, xLabel) {
+  // Each gets a distinct point SHAPE and a least-squares TREND LINE so the four
+  // correlation charts don't blur together -- the slope becomes each chart's
+  // signature (e.g. sun-vs-loss should trend up). Trend needs >=3 points.
+  function linReg(pts) {
+    const n = pts.length;
+    if (n < 3) return null;
+    let sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (const p of pts) { sx += p.x; sy += p.y; sxx += p.x * p.x; sxy += p.x * p.y; }
+    const denom = n * sxx - sx * sx;
+    if (denom === 0) return null;   // all x identical -> no meaningful slope
+    const slope = (n * sxy - sx * sy) / denom;
+    return { slope, intercept: (sy - slope * sx) / n };
+  }
+  function scatterChart(canvasId, points, color, xLabel, pointStyle) {
+    const datasets = [{
+      data: points, backgroundColor: color, borderColor: color,
+      pointStyle: pointStyle, pointRadius: 6, pointHoverRadius: 9, order: 0,
+    }];
+    const reg = linReg(points);
+    if (reg) {
+      const xs = points.map(p => p.x);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      datasets.push({
+        type: 'line', showLine: true, order: 1,
+        data: [{ x: minX, y: reg.slope * minX + reg.intercept },
+               { x: maxX, y: reg.slope * maxX + reg.intercept }],
+        borderColor: color, borderWidth: 2, borderDash: [6, 5],
+        pointRadius: 0, fill: false, tension: 0,
+      });
+    }
     new Chart(document.getElementById(canvasId), {
       type: 'scatter',
-      data: { datasets: [{ data: points, backgroundColor: color, pointRadius: 6, pointHoverRadius: 8 }] },
+      data: { datasets },
       options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.raw.label}: ${c.raw.x}, ${c.raw.y.toFixed(1)} ppm loss` } } },
+        plugins: { legend: { display: false },
+          tooltip: { filter: c => c.raw && c.raw.label != null,   // skip trend-line points
+                     callbacks: { label: c => `${c.raw.label}: ${c.raw.x}, ${c.raw.y.toFixed(1)} ppm loss` } } },
         scales: { y: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('FC loss (ppm/24h)') },
                   x: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle(xLabel) } } }
     });
   }
-  scatterChart('weatherLossChart', tests.filter(t => t.fc_loss != null && t.sun_hrs != null).map(t => ({ x: t.sun_hrs, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.amber, 'Sun (hrs)');
-  scatterChart('tempLossChart', tests.filter(t => t.fc_loss != null && t.water_temp != null).map(t => ({ x: t.water_temp, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.coral, 'Water temp (°F)');
-  scatterChart('rainLossChart', tests.filter(t => t.fc_loss != null && t.rain_in != null).map(t => ({ x: t.rain_in, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.teal, 'Rain (in)');
+  scatterChart('weatherLossChart', tests.filter(t => t.fc_loss != null && t.sun_hrs != null).map(t => ({ x: t.sun_hrs, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.amber, 'Sun (hrs)', 'circle');
+  scatterChart('tempLossChart', tests.filter(t => t.fc_loss != null && t.water_temp != null).map(t => ({ x: t.water_temp, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.coral, 'Water temp (°F)', 'triangle');
+  scatterChart('rainLossChart', tests.filter(t => t.fc_loss != null && t.rain_in != null).map(t => ({ x: t.rain_in, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.teal, 'Rain (in)', 'rectRot');
 
   const doseLossPts = [];
   for (let i = 1; i < tests.length; i++) {
@@ -486,7 +517,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
     const gal = doses.filter(d => d.date > prevDate && d.date <= t.date).reduce((s, d) => s + d.gal, 0);
     doseLossPts.push({ x: Math.round(gal * 100) / 100, y: t.fc_loss, label: fmtDate(t.date) });
   }
-  scatterChart('doseLossChart', doseLossPts, COLOR.green, 'Chlorine added (gal)');
+  scatterChart('doseLossChart', doseLossPts, COLOR.green, 'Chlorine added (gal)', 'star');
 
   // ---- pH / TA / CYA trends ----
   function lineChart(canvasId, pts, valueKey, color, yLabel) {
