@@ -83,7 +83,7 @@ def build_data_json(tests, doses, all_rows, photo_by_date):
                 "water_temp": t["water_temp"], "sun_hrs": t["sun_hrs"],
                 "pred_error": t["pred_error"],
                 "fc_loss": t["fc_loss"], "ph": t["ph"], "ta": t["ta"], "cya": t["cya"],
-                "rain_in": t["rain_in"],
+                "rain_in": t["rain_in"], "water_level_cm": t["water_level_cm"],
                 "thumb": (photo_by_date.get(str(t["date"])) or [None])[0],
             }
             for t in tests
@@ -112,6 +112,7 @@ LOG_COLUMNS = [
     ("pred_error", "Pred err"), ("ta", "TA"), ("ch", "CH"), ("cya", "CYA"),
     ("chlorine_gal", "Cl added"), ("cum_cl", "Cum Cl"), ("sun_hrs", "Sun"),
     ("rain_in", "Rain"), ("fill_gal", "Fill"), ("water_temp", "Water temp"),
+    ("water_level_cm", "Water level"),
     ("weather", "Weather"), ("photo", "Photo"), ("notes", "Notes"),
 ]
 

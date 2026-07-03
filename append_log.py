@@ -49,15 +49,15 @@ from openpyxl import load_workbook
 # Locate the workbook next to this script, so it works from any directory.
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Pool_Log.xlsx")
 SHEET = "Log"
-NCOLS = 21
+NCOLS = 22
 
 # JSON/arg key -> column index (1-based)
 COLS = {
     "date": 1, "time": 2, "type": 3, "ph": 4, "fc": 5, "cc": 6,
     "fc_loss": 7, "pred_fc": 8, "pred_error": 9, "ta": 10, "ch": 11,
     "cya": 12, "chlorine_gal": 13, "cum_cl": 14, "sun_hrs": 15,
-    "rain_in": 16, "fill_gal": 17, "water_temp": 18, "weather": 19,
-    "photo": 20, "notes": 21,
+    "rain_in": 16, "fill_gal": 17, "water_temp": 18, "water_level_cm": 19,
+    "weather": 20, "photo": 21, "notes": 22,
 }
 
 
