@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-07-03T00:59:13",
+    "generated_at": "2026-07-03T01:08:55",
     "pool_gallons": 34400,
     "cya_current": 150,
     "fc_floor": 11,
@@ -22,6 +22,7 @@
       "ta": 140,
       "cya": "~100",
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": null
     },
     {
@@ -37,6 +38,7 @@
       "ta": 130,
       "cya": ">100",
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": null
     },
     {
@@ -52,6 +54,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": null
     },
     {
@@ -67,6 +70,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0.33,
+      "water_level_cm": null,
       "thumb": null
     },
     {
@@ -82,6 +86,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0.2,
+      "water_level_cm": null,
       "thumb": null
     },
     {
@@ -97,6 +102,7 @@
       "ta": 170,
       "cya": 150,
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": null
     },
     {
@@ -112,6 +118,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": null
     },
     {
@@ -127,6 +134,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 1.36,
+      "water_level_cm": null,
       "thumb": null
     },
     {
@@ -142,6 +150,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": "2026-06-27_1.jpg"
     },
     {
@@ -157,6 +166,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": "2026-06-28_1.jpg"
     },
     {
@@ -172,6 +182,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": "2026-06-29_1.jpg"
     },
     {
@@ -187,6 +198,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": "2026-06-30_1.jpg"
     },
     {
@@ -202,6 +214,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0.47,
+      "water_level_cm": null,
       "thumb": "2026-07-01_1.jpg"
     },
     {
@@ -217,6 +230,7 @@
       "ta": null,
       "cya": null,
       "rain_in": 0,
+      "water_level_cm": null,
       "thumb": "2026-07-02_1.jpeg"
     },
     {
@@ -232,6 +246,7 @@
       "ta": null,
       "cya": null,
       "rain_in": null,
+      "water_level_cm": 11.9,
       "thumb": "2026-07-02_1.jpeg"
     }
   ],
