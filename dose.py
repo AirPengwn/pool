@@ -56,8 +56,11 @@ CONFIG = {
         "hot_temp": 80.0,        # water temp (F) at/above which sunny days lose more
         "l24_rain": 1.5,
         "l24_partly": 3.0,
-        "l24_sunny": 4.0,        # >=8 sun hrs, water < hot_temp
-        "l24_hot_sunny": 5.0,    # >=8 sun hrs AND water >= hot_temp
+        "l24_sunny": 4.0,        # >=8 sun hrs, water < hot_temp (unvalidated by recent data -- recent sunny days all had hot water)
+        "l24_hot_sunny": 4.0,    # >=8 sun hrs AND water >= hot_temp. Lowered 5.0->4.0 on 2026-07-04: three straight forward
+                                 # over-predictions (+2.1, +0.9, +1.7); actual hot-day losses ran ~2.9/4.1/3.3 (avg ~3.4), not
+                                 # 5.0. 4.0 keeps a small conservative cushion above the ~3.4 mean. Drop toward 3.5 if it keeps
+                                 # over-predicting once hot weather returns mid-week (after the 7/6-7/7 rain).
     },
 }
 
