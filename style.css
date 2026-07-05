@@ -169,6 +169,11 @@ table.logtable td a { font-weight: 500; }
 
 .photo-day { margin-bottom: 28px; }
 .photo-day h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 17px; margin-bottom: 4px; text-align: center; }
+.day-video {
+  display: block; margin: 8px auto 14px;
+  max-width: min(440px, 100%); max-height: 70vh;   /* max-height keeps portrait clips from towering */
+  border-radius: 8px; border: 0.5px solid var(--border); background: #000;
+}
 .thumbs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .thumbs img { width: 200px; height: 160px; object-fit: cover; border-radius: 8px; border: 0.5px solid var(--border); display: block; cursor: zoom-in; }
 
