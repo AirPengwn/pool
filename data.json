@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-07-05T22:48:02",
+    "generated_at": "2026-07-05T23:23:02",
     "pool_gallons": 34400,
     "cya_current": 150,
     "fc_floor": 11,
@@ -310,7 +310,7 @@
       "ta": null,
       "cya": null,
       "rain_in": null,
-      "water_level_cm": null,
+      "water_level_cm": 13.6,
       "thumb": "2026-07-05_1.jpeg"
     }
   ],
