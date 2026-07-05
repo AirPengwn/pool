@@ -250,22 +250,28 @@ def resize_photo(src_path, dst_path):
 
 
 def scan_and_resize_photos():
+    # Photos are resized here; videos are expected to already be web-ready,
+    # compressed .mp4 (transcoded from the phone's .MOV with ffmpeg before
+    # committing -- see POOL.md; the large .MOV originals are gitignored, only
+    # the small .mp4 lands in the repo). We just copy the .mp4 through.
     out_photos = os.path.join(OUT, "photos")
     os.makedirs(out_photos, exist_ok=True)
-    by_date = {}
+    by_date, videos_by_date = {}, {}
     if os.path.isdir(PHOTOS_SRC):
         for fname in sorted(os.listdir(PHOTOS_SRC)):
-            if not fname.lower().endswith((".jpg", ".jpeg", ".png")):
-                continue
+            low = fname.lower()
             day = fname.split("_")[0]
             src = os.path.join(PHOTOS_SRC, fname)
-            dst = os.path.join(out_photos, fname)
-            resize_photo(src, dst)
-            by_date.setdefault(day, []).append(fname)
-    return by_date
+            if low.endswith((".jpg", ".jpeg", ".png")):
+                resize_photo(src, os.path.join(out_photos, fname))
+                by_date.setdefault(day, []).append(fname)
+            elif low.endswith(".mp4"):
+                shutil.copy(src, os.path.join(out_photos, fname))
+                videos_by_date.setdefault(day, []).append(fname)
+    return by_date, videos_by_date
 
 
-def build_photos(tests, by_date, build_version):
+def build_photos(tests, by_date, videos_by_date, build_version):
     floor, _ = D.band_for_cya(D.CONFIG["cya_current"], D.CONFIG)
     test_by_date = {str(t["date"]): t for t in tests}
 
@@ -289,12 +295,19 @@ def build_photos(tests, by_date, build_version):
         return f'<div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:12px;">{"".join(tiles)}</div>'
 
     sections = []
-    for day in sorted(by_date, reverse=True):
+    # Include days that have a video even if they have no photos.
+    all_days = sorted(set(by_date) | set(videos_by_date), reverse=True)
+    for day in all_days:
+        videos = "".join(
+            f'<video class="day-video" controls preload="metadata" playsinline>'
+            f'<source src="photos/{v}" type="video/mp4">Your browser can\'t play this video.</video>'
+            for v in videos_by_date.get(day, [])
+        )
         thumbs = "".join(
             f'<img src="photos/{f}" loading="lazy" alt="Chlorine-check photo, {day}">'
-            for f in by_date[day]
+            for f in by_date.get(day, [])
         )
-        sections.append(f'<section class="photo-day" id="{day}"><h2>{day}</h2><div class="thumbs">{thumbs}</div>{day_stats_html(day)}</section>')
+        sections.append(f'<section class="photo-day" id="{day}"><h2>{day}</h2>{videos}<div class="thumbs">{thumbs}</div>{day_stats_html(day)}</section>')
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -375,10 +388,10 @@ def main():
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as fh:
         fh.write(index_html)
 
-    by_date = scan_and_resize_photos()
+    by_date, videos_by_date = scan_and_resize_photos()
     build_data_json(tests, doses, all_rows, by_date)
-    build_log_html(all_rows, set(by_date.keys()), build_version)
-    build_photos(tests, by_date, build_version)
+    build_log_html(all_rows, set(by_date.keys()) | set(videos_by_date.keys()), build_version)
+    build_photos(tests, by_date, videos_by_date, build_version)
 
     shutil.copy(LOG_FILE, os.path.join(OUT, "Pool_Log.xlsx"))
     if os.path.exists(GUIDE_SRC):

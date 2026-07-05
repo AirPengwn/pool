@@ -5,3 +5,7 @@ today_input.json
 Pool_Log.backup-*.xlsx
 _site/
 ~$*.xlsx
+# Phone video originals: large (~40MB). Transcode to a small dated .mp4 with
+# ffmpeg before committing (the .mp4 is what the site serves); keep .MOV local only.
+*.MOV
+*.mov
