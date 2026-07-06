@@ -54,13 +54,18 @@ CONFIG = {
         "rain_sun_max": 3.0,     # sun hrs < this -> rainy/overcast day
         "partly_sun_max": 8.0,   # sun hrs < this -> partly
         "hot_temp": 80.0,        # water temp (F) at/above which sunny days lose more
-        "l24_rain": 1.5,
+        # Buckets NARROWED 2026-07-06. Analysis of all fresh-reagent daily losses (see POOL.md
+        # "Loss-model calibration") found actual loss barely tracks sun -- slope ~0.08 ppm per
+        # sun-hour vs the ~0.25 these buckets implied (3x too steep). At CYA ~150 the stabilizer
+        # shields UV, so loss is a near-constant ~3 ppm/day background demand +/- large day-to-day
+        # noise (sunny days ALONE ranged 1.2-5.1). The old spread over-predicted sun (all +errors)
+        # and under-predicted rain (7/6's first -error). Compressed toward the ~3 mean:
+        "l24_rain": 2.5,         # was 1.5 -- rain/low-sun days actually averaged ~2.5 (storm demand + dilution offset the lack of UV)
         "l24_partly": 3.0,
-        "l24_sunny": 4.0,        # >=8 sun hrs, water < hot_temp (unvalidated by recent data -- recent sunny days all had hot water)
-        "l24_hot_sunny": 4.0,    # >=8 sun hrs AND water >= hot_temp. Lowered 5.0->4.0 on 2026-07-04: three straight forward
-                                 # over-predictions (+2.1, +0.9, +1.7); actual hot-day losses ran ~2.9/4.1/3.3 (avg ~3.4), not
-                                 # 5.0. 4.0 keeps a small conservative cushion above the ~3.4 mean. Drop toward 3.5 if it keeps
-                                 # over-predicting once hot weather returns mid-week (after the 7/6-7/7 rain).
+        "l24_sunny": 3.5,        # was 4.0
+        "l24_hot_sunny": 3.5,    # was 4.0 (5.0 before 7/4). Hot days ran a touch higher (~3.85 avg); bump back toward ~3.8
+                                 # if that holds as more fresh-reagent hot-day data accrues. Keep re-analyzing loss vs weather
+                                 # AND vs reagent era (pre-6/24 old-reagent data stays excluded as unreliable).
     },
 }
 
