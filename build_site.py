@@ -418,7 +418,7 @@ def build_concert_html(images, videos, build_version):
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="theme.js?v={build_version}"></script>
-<title>Concert — Summer 2026</title>
+<title>Noah Kahan — July 8, 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
 <link rel="stylesheet" href="style.css?v={build_version}">
@@ -449,7 +449,7 @@ def build_concert_html(images, videos, build_version):
 }})();
 </script>
 <main class="wide">
-<h1>Concert</h1>
+<h1>Noah Kahan — July 8, 2026</h1>
 <p class="cap">{subtitle}. Click a photo to zoom, click again to shrink.</p>
 {videos_section}
 {photos_section}
