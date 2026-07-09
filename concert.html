@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="theme.js?v=20260709074046"></script>
+<title>Noah Kahan — July 8, 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
+<link rel="stylesheet" href="style.css?v=20260709074046">
+</head>
+<body>
+<header class="masthead">
+<a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
+<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
+<nav><a href="index.html">Dashboard</a><a href="log.html">Data</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
+</div>
+</header>
+<script>
+(function () {
+  var btn = document.getElementById('themeToggle');
+  function labelToggle() {
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    btn.innerHTML = window.THEME_ICONS[next === 'dark' ? 'moon' : 'sun'];
+    btn.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+  }
+  labelToggle();
+  btn.addEventListener('click', function () {
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('pool_theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    location.reload();
+  });
+})();
+</script>
+<main class="wide">
+<h1>Noah Kahan — July 8, 2026</h1>
+<p class="cap">19 photos · 6 videos. Click a photo to zoom, click again to shrink.</p>
+<h2 class="concert-sub">Video</h2><div class="concert-videos"><video class="concert-video" controls preload="metadata" playsinline><source src="concert/IMG_8970.mp4" type="video/mp4">Your browser can't play this video.</video><video class="concert-video" controls preload="metadata" playsinline><source src="concert/IMG_8971.mp4" type="video/mp4">Your browser can't play this video.</video><video class="concert-video" controls preload="metadata" playsinline><source src="concert/IMG_8973.mp4" type="video/mp4">Your browser can't play this video.</video><video class="concert-video" controls preload="metadata" playsinline><source src="concert/IMG_8976.mp4" type="video/mp4">Your browser can't play this video.</video><video class="concert-video" controls preload="metadata" playsinline><source src="concert/IMG_8979.mp4" type="video/mp4">Your browser can't play this video.</video><video class="concert-video" controls preload="metadata" playsinline><source src="concert/IMG_8980.mp4" type="video/mp4">Your browser can't play this video.</video></div>
+<h2 class="concert-sub">Photos</h2><div class="thumbs"><img src="concert/IMG_8959.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8960.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8961.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8962.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8963.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8964.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8965.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8966.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8967.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8968.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8969.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8972.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8974.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8975.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8977.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8978.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8981.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8982.jpg" loading="lazy" alt="Concert photo"><img src="concert/IMG_8983.jpg" loading="lazy" alt="Concert photo"></div>
+</main>
+<div class="lightbox" id="lightbox"><img id="lightboxImg" src="" alt=""></div>
+<script>
+document.querySelectorAll('.thumbs img').forEach(img => {
+  img.addEventListener('click', () => {
+    document.getElementById('lightboxImg').src = img.src;
+    document.getElementById('lightbox').classList.add('open');
+  });
+});
+document.getElementById('lightbox').addEventListener('click', () => {
+  document.getElementById('lightbox').classList.remove('open');
+});
+</script>
+</body>
+</html>
