@@ -34,6 +34,7 @@ import dose as D
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "_site")
 PHOTOS_SRC = os.path.join(HERE, "photos")
+CONCERT_SRC = os.path.join(HERE, "concert")
 GUIDE_SRC = os.path.join(HERE, "Taylor_K2006_Testing_Guide.docx")
 
 MAX_PHOTO_DIM = 1600
@@ -367,6 +368,110 @@ document.getElementById('lightbox').addEventListener('click', () => {{
         fh.write(html)
 
 
+def scan_concert():
+    """Copy the web-ready concert media (pre-resized photos + already-transcoded
+    H.264 mp4s living in concert/) into _site/concert/. Returns (images, videos)
+    filename lists sorted by name -- the iPhone IMG_#### numbering is chronological.
+    Returns ([], []) if there's no concert/ dir. The heavy resize/transcode is done
+    once offline (see POOL.md 'Concert page'), so this -- and the CI build, which
+    has no ffmpeg -- only copy."""
+    if not os.path.isdir(CONCERT_SRC):
+        return [], []
+    out = os.path.join(OUT, "concert")
+    os.makedirs(out, exist_ok=True)
+    images, videos = [], []
+    for fname in sorted(os.listdir(CONCERT_SRC)):
+        low = fname.lower()
+        if low.endswith((".jpg", ".jpeg", ".png")):
+            shutil.copy(os.path.join(CONCERT_SRC, fname), os.path.join(out, fname))
+            images.append(fname)
+        elif low.endswith(".mp4"):
+            shutil.copy(os.path.join(CONCERT_SRC, fname), os.path.join(out, fname))
+            videos.append(fname)
+    return images, videos
+
+
+def build_concert_html(images, videos, build_version):
+    """A standalone shareable gallery of the concert photos + video (concert.html).
+    Reached from a small link at the bottom of the dashboard. No pool data on it."""
+    if not images and not videos:
+        return
+    video_html = "".join(
+        f'<video class="concert-video" controls preload="metadata" playsinline>'
+        f'<source src="concert/{v}" type="video/mp4">Your browser can\'t play this video.</video>'
+        for v in videos
+    )
+    photo_html = "".join(
+        f'<img src="concert/{f}" loading="lazy" alt="Concert photo">' for f in images
+    )
+    videos_section = f'<h2 class="concert-sub">Video</h2><div class="concert-videos">{video_html}</div>' if videos else ""
+    photos_section = f'<h2 class="concert-sub">Photos</h2><div class="thumbs">{photo_html}</div>' if images else ""
+    bits = []
+    if images:
+        bits.append(f'{len(images)} photo' + ('s' if len(images) != 1 else ''))
+    if videos:
+        bits.append(f'{len(videos)} video' + ('s' if len(videos) != 1 else ''))
+    subtitle = " · ".join(bits)
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="theme.js?v={build_version}"></script>
+<title>Concert — Summer 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
+<link rel="stylesheet" href="style.css?v={build_version}">
+</head>
+<body>
+<header class="masthead">
+<a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
+<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
+<nav><a href="index.html">Dashboard</a><a href="log.html">Data</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
+</div>
+</header>
+<script>
+(function () {{
+  var btn = document.getElementById('themeToggle');
+  function labelToggle() {{
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    btn.innerHTML = window.THEME_ICONS[next === 'dark' ? 'moon' : 'sun'];
+    btn.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+  }}
+  labelToggle();
+  btn.addEventListener('click', function () {{
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('pool_theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    location.reload();
+  }});
+}})();
+</script>
+<main class="wide">
+<h1>Concert</h1>
+<p class="cap">{subtitle}. Click a photo to zoom, click again to shrink.</p>
+{videos_section}
+{photos_section}
+</main>
+<div class="lightbox" id="lightbox"><img id="lightboxImg" src="" alt=""></div>
+<script>
+document.querySelectorAll('.thumbs img').forEach(img => {{
+  img.addEventListener('click', () => {{
+    document.getElementById('lightboxImg').src = img.src;
+    document.getElementById('lightbox').classList.add('open');
+  }});
+}});
+document.getElementById('lightbox').addEventListener('click', () => {{
+  document.getElementById('lightbox').classList.remove('open');
+}});
+</script>
+</body>
+</html>"""
+    with open(os.path.join(OUT, "concert.html"), "w", encoding="utf-8") as fh:
+        fh.write(html)
+
+
 def main():
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
@@ -393,12 +498,16 @@ def main():
     build_log_html(all_rows, set(by_date.keys()) | set(videos_by_date.keys()), build_version)
     build_photos(tests, by_date, videos_by_date, build_version)
 
+    concert_images, concert_videos = scan_concert()
+    build_concert_html(concert_images, concert_videos, build_version)
+
     shutil.copy(LOG_FILE, os.path.join(OUT, "Pool_Log.xlsx"))
     if os.path.exists(GUIDE_SRC):
         shutil.copy(GUIDE_SRC, os.path.join(OUT, "Taylor_K2006_Testing_Guide.docx"))
 
     n_photos = len(os.listdir(os.path.join(OUT, "photos"))) if os.path.isdir(os.path.join(OUT, "photos")) else 0
-    print(f"Built _site/: {len(tests)} test rows, {len(doses)} dose rows, {n_photos} photos.")
+    print(f"Built _site/: {len(tests)} test rows, {len(doses)} dose rows, {n_photos} photos, "
+          f"{len(concert_images)}+{len(concert_videos)} concert photos+videos.")
 
 
 if __name__ == "__main__":

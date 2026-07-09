@@ -184,3 +184,13 @@ table.logtable td a { font-weight: 500; }
 }
 .lightbox.open { display: flex; }
 .lightbox img { max-width: 92vw; max-height: 92vh; object-fit: contain; border-radius: 8px; }
+
+/* Concert page: a shareable gallery of event photos + video */
+.concert-sub { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 18px; margin: 26px 0 12px; }
+.concert-videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.concert-video { width: 100%; height: auto; border-radius: 8px; border: 0.5px solid var(--border); background: #000; display: block; }
+
+/* Small, unobtrusive footer link (the "concert" link at the bottom of the dashboard) */
+.site-footer { text-align: center; padding: 20px 0 44px; }
+.site-footer a { color: var(--text-muted); font-size: 12px; letter-spacing: .04em; }
+.site-footer a:hover { color: var(--teal); }

@@ -9,3 +9,7 @@ _site/
 # ffmpeg before committing (the .mp4 is what the site serves); keep .MOV local only.
 *.MOV
 *.mov
+
+# iCloud dump of raw concert originals (~100MB). The web-ready, re-encoded copies
+# live in concert/ and ARE committed; these camera originals stay local only.
+icloud/
