@@ -1,12 +1,12 @@
 {
   "meta": {
-    "generated_at": "2026-07-11T16:49:17",
+    "generated_at": "2026-07-11T12:53:14",
     "pool_gallons": 34400,
     "cya_current": 150,
     "fc_floor": 11,
     "fc_aim": 15,
     "season_open": "2026-06-18",
-    "season_total_dose_gal": 26.0
+    "season_total_dose_gal": 27.0
   },
   "tests": [
     {
@@ -540,6 +540,13 @@
       "time": "19:50",
       "gal": 1.5,
       "cum": 26,
+      "pred_fc": 13.6
+    },
+    {
+      "date": "2026-07-11",
+      "time": "13:00",
+      "gal": 1,
+      "cum": 27,
       "pred_fc": 13.6
     }
   ],
