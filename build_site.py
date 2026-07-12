@@ -465,17 +465,69 @@ def setlist_html(concert):
             f'<div class="setlist-acts">{"".join(blocks)}</div></section>')
 
 
+def _video_dims(path, _cache={}):
+    """(width, height) display dims of an mp4's video track from its tkhd box.
+    Pure-python (no ffprobe) so it also works on the CI build runner; relies on the
+    moov atom being near the front, which it is (all clips are encoded +faststart).
+    Used to lay portrait clips out solo/centered and landscape clips two-up."""
+    if path in _cache:
+        return _cache[path]
+    try:
+        with open(path, "rb") as f:
+            buf = f.read(1 << 20)
+    except OSError:
+        buf = b""
+
+    def walk(start, end):
+        i = start
+        while i + 8 <= end:
+            size = int.from_bytes(buf[i:i + 4], "big")
+            btype = buf[i + 4:i + 8]
+            hdr = 8
+            if size == 1:
+                size = int.from_bytes(buf[i + 8:i + 16], "big"); hdr = 16
+            elif size == 0:
+                size = end - i
+            box_end = min(i + size, end)
+            if size < hdr:
+                break
+            if btype in (b"moov", b"trak", b"mdia"):
+                r = walk(i + hdr, box_end)
+                if r:
+                    return r
+            elif btype == b"tkhd":
+                w = int.from_bytes(buf[box_end - 8:box_end - 4], "big") >> 16
+                h = int.from_bytes(buf[box_end - 4:box_end], "big") >> 16
+                if w and h:
+                    return (w, h)
+            i = box_end
+        return None
+
+    _cache[path] = walk(0, len(buf))
+    return _cache[path]
+
+
 def build_concert_page(concert, all_concerts, build_version):
     """One standalone shareable gallery page per concert night (setlist + video + photos).
     Reached from the 'concerts' link at the bottom of the dashboard; a Night 1/Night 2
     sub-nav switches between them. No pool data on it."""
     images, videos = scan_concert_dir(concert["dir"], concert["web"])
     web = concert["web"]
-    video_html = "".join(
-        f'<video class="concert-video" controls preload="metadata" playsinline>'
-        f'<source src="{web}/{v}" type="video/mp4">Your browser can\'t play this video.</video>'
-        for v in videos
-    )
+    # Lay portrait clips out solo + centered, landscape clips two-up (avoids the tall
+    # gap a fixed grid leaves when a vertical clip sits next to a horizontal one).
+    # Chronological order is preserved; a landscape isolated next to a portrait just
+    # ends up centered on its own row. Orientation read from each mp4's header.
+    vid_cells = []
+    for v in videos:
+        dims = _video_dims(os.path.join(concert["dir"], v))
+        orient = "portrait" if dims and dims[1] > dims[0] else "landscape"
+        vid_cells.append(
+            f'<div class="vid-cell {orient}">'
+            f'<video class="concert-video" controls preload="metadata" playsinline>'
+            f'<source src="{web}/{v}" type="video/mp4">Your browser can\'t play this video.</video>'
+            f'</div>'
+        )
+    video_html = "".join(vid_cells)
     photo_html = "".join(
         f'<img src="{web}/{f}" loading="lazy" alt="Concert photo">' for f in images
     )
