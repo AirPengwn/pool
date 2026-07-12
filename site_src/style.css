@@ -190,6 +190,19 @@ table.logtable td a { font-weight: 500; }
 .concert-videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
 .concert-video { width: 100%; height: auto; border-radius: 8px; border: 0.5px solid var(--border); background: #000; display: block; }
 
+/* Night 1 / Night 2 sub-nav (sits right below the masthead on concert pages) */
+.night-nav { display: flex; justify-content: center; gap: 10px; padding: 12px 20px; background: var(--surface); border-bottom: 0.5px solid var(--border); }
+.night-nav a { padding: 6px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--text-secondary); border: 0.5px solid var(--border); }
+.night-nav a:hover { color: var(--teal); border-color: var(--teal); text-decoration: none; }
+.night-nav a.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+/* Concert setlist, shown above the media */
+.setlist { margin: 6px 0 22px; }
+.setlist-list { columns: 220px 2; column-gap: 34px; margin: 6px 0 4px; padding-left: 1.5em; }
+.setlist-list li { margin: 3px 0; break-inside: avoid; color: var(--text-primary); }
+.setlist-list li::marker { color: var(--text-muted); font-size: 12px; }
+.setlist-encore { margin: 12px 0 4px; font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+
 /* Small, unobtrusive footer link (the "concert" link at the bottom of the dashboard) */
 .site-footer { text-align: center; padding: 20px 0 44px; }
 .site-footer a { color: var(--text-muted); font-size: 12px; letter-spacing: .04em; }

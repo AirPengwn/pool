@@ -35,6 +35,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "_site")
 PHOTOS_SRC = os.path.join(HERE, "photos")
 CONCERT_SRC = os.path.join(HERE, "concert")
+CONCERT2_SRC = os.path.join(HERE, "concert2")
 GUIDE_SRC = os.path.join(HERE, "Taylor_K2006_Testing_Guide.docx")
 
 MAX_PHOTO_DIM = 1600
@@ -368,41 +369,84 @@ document.getElementById('lightbox').addEventListener('click', () => {{
         fh.write(html)
 
 
-def scan_concert():
-    """Copy the web-ready concert media (pre-resized photos + already-transcoded
-    H.264 mp4s living in concert/) into _site/concert/. Returns (images, videos)
-    filename lists sorted by name -- the iPhone IMG_#### numbering is chronological.
-    Returns ([], []) if there's no concert/ dir. The heavy resize/transcode is done
-    once offline (see POOL.md 'Concert page'), so this -- and the CI build, which
-    has no ffmpeg -- only copy."""
-    if not os.path.isdir(CONCERT_SRC):
+# The two-night Noah Kahan Fenway run. Each night is a standalone shareable gallery
+# page. setlist/encore sourced from setlist.fm (fan-submitted -- verify). Web-ready
+# media lives in the committed dir; raw camera originals are gitignored (icloud/,
+# icloud/night2/) and processed offline by prep_concert*.py.
+CONCERTS = [
+    {
+        "page": "concert.html", "dir": CONCERT_SRC, "web": "concert", "label": "Night 1",
+        "heading": "Noah Kahan — July 8, 2026 · Fenway Park, Boston, MA",
+        "title": "Noah Kahan — Night 1 (July 8, 2026)",
+        "setlist": ["American Cars", "Doors", "All My Love", "Deny Deny Deny", "Staying Still",
+                    "Haircut", "Downfall", "Mess", "She Calls Me Back", "Dashboard", "Dial Drunk",
+                    "We Go Way Back", "Porch Light", "Orbiter", "Maine", "Paid Time Off", "Lighthouse",
+                    "The View Between Villages", "Northern Attitude", "The Great Divide", "Orange Juice",
+                    "New Perspective"],
+        "encore": ["End of August", "Homesick", "Stick Season"],
+    },
+    {
+        "page": "concert2.html", "dir": CONCERT2_SRC, "web": "concert2", "label": "Night 2",
+        "heading": "Noah Kahan — July 11, 2026 · Fenway Park, Boston, MA",
+        "title": "Noah Kahan — Night 2 (July 11, 2026)",
+        "setlist": ["American Cars", "Doors", "All My Love", "Deny Deny Deny", "Staying Still",
+                    "Haircut", "Downfall", "Forever", "She Calls Me Back", "Dashboard", "Dial Drunk",
+                    "Willing and Able", "Porch Light", "Orbiter", "23", "Paid Time Off", "Dan",
+                    "The View Between Villages", "Northern Attitude", "The Great Divide", "Carlo's Song",
+                    "New Perspective"],
+        "encore": ["End of August", "Homesick", "Stick Season"],
+    },
+]
+
+
+def scan_concert_dir(src_dir, web_name):
+    """Copy a night's web-ready media (pre-resized photos + already-transcoded H.264
+    mp4s) into _site/<web_name>/. Returns (images, videos) filename lists sorted by name
+    (iPhone IMG_#### numbering is chronological). Heavy resize/transcode is done once
+    offline (prep_concert*.py; see POOL.md), so this -- and the CI build, no ffmpeg -- only copy."""
+    if not os.path.isdir(src_dir):
         return [], []
-    out = os.path.join(OUT, "concert")
+    out = os.path.join(OUT, web_name)
     os.makedirs(out, exist_ok=True)
     images, videos = [], []
-    for fname in sorted(os.listdir(CONCERT_SRC)):
+    for fname in sorted(os.listdir(src_dir)):
         low = fname.lower()
         if low.endswith((".jpg", ".jpeg", ".png")):
-            shutil.copy(os.path.join(CONCERT_SRC, fname), os.path.join(out, fname))
+            shutil.copy(os.path.join(src_dir, fname), os.path.join(out, fname))
             images.append(fname)
         elif low.endswith(".mp4"):
-            shutil.copy(os.path.join(CONCERT_SRC, fname), os.path.join(out, fname))
+            shutil.copy(os.path.join(src_dir, fname), os.path.join(out, fname))
             videos.append(fname)
     return images, videos
 
 
-def build_concert_html(images, videos, build_version):
-    """A standalone shareable gallery of the concert photos + video (concert.html).
-    Reached from a small link at the bottom of the dashboard. No pool data on it."""
-    if not images and not videos:
-        return
+def setlist_html(concert):
+    main, enc = concert.get("setlist", []), concert.get("encore", [])
+    if not main and not enc:
+        return ""
+    out = ['<section class="setlist"><h2 class="concert-sub">Setlist</h2>']
+    out.append('<ol class="setlist-list">' + "".join(f"<li>{esc(s)}</li>" for s in main) + "</ol>")
+    if enc:
+        out.append('<div class="setlist-encore">Encore</div>')
+        out.append(f'<ol class="setlist-list" start="{len(main) + 1}">'
+                   + "".join(f"<li>{esc(s)}</li>" for s in enc) + "</ol>")
+    out.append("</section>")
+    return "".join(out)
+
+
+def build_concert_page(concert, all_concerts, build_version):
+    """One standalone shareable gallery page per concert night (setlist + video + photos).
+    Reached from the 'concerts' link at the bottom of the dashboard; a Night 1/Night 2
+    sub-nav switches between them. No pool data on it."""
+    images, videos = scan_concert_dir(concert["dir"], concert["web"])
+    web = concert["web"]
     video_html = "".join(
         f'<video class="concert-video" controls preload="metadata" playsinline>'
-        f'<source src="concert/{v}" type="video/mp4">Your browser can\'t play this video.</video>'
+        f'<source src="{web}/{v}" type="video/mp4">Your browser can\'t play this video.</video>'
         for v in videos
     )
     photo_html = "".join(
-        f'<img src="concert/{f}" loading="lazy" alt="Concert photo">' for f in images
+        f'<img src="{web}/{f}" loading="lazy" alt="Concert photo">' for f in images
     )
     videos_section = f'<h2 class="concert-sub">Video</h2><div class="concert-videos">{video_html}</div>' if videos else ""
     photos_section = f'<h2 class="concert-sub">Photos</h2><div class="thumbs">{photo_html}</div>' if images else ""
@@ -412,13 +456,18 @@ def build_concert_html(images, videos, build_version):
     if videos:
         bits.append(f'{len(videos)} video' + ('s' if len(videos) != 1 else ''))
     subtitle = " · ".join(bits)
+    links = []
+    for c in all_concerts:
+        active = ' class="active"' if c["page"] == concert["page"] else ''
+        links.append(f'<a href="{c["page"]}"{active}>{esc(c["label"])}</a>')
+    night_nav = "".join(links)
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="theme.js?v={build_version}"></script>
-<title>Noah Kahan — July 8, 2026</title>
+<title>{esc(concert['title'])}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
 <link rel="stylesheet" href="style.css?v={build_version}">
@@ -448,9 +497,11 @@ def build_concert_html(images, videos, build_version):
   }});
 }})();
 </script>
+<nav class="night-nav">{night_nav}</nav>
 <main class="wide">
-<h1>Noah Kahan — July 8, 2026</h1>
+<h1>{esc(concert['heading'])}</h1>
 <p class="cap">{subtitle}. Click a photo to zoom, click again to shrink.</p>
+{setlist_html(concert)}
 {videos_section}
 {photos_section}
 </main>
@@ -468,8 +519,9 @@ document.getElementById('lightbox').addEventListener('click', () => {{
 </script>
 </body>
 </html>"""
-    with open(os.path.join(OUT, "concert.html"), "w", encoding="utf-8") as fh:
+    with open(os.path.join(OUT, concert["page"]), "w", encoding="utf-8") as fh:
         fh.write(html)
+    return len(images), len(videos)
 
 
 def main():
@@ -498,16 +550,16 @@ def main():
     build_log_html(all_rows, set(by_date.keys()) | set(videos_by_date.keys()), build_version)
     build_photos(tests, by_date, videos_by_date, build_version)
 
-    concert_images, concert_videos = scan_concert()
-    build_concert_html(concert_images, concert_videos, build_version)
+    concert_counts = [build_concert_page(c, CONCERTS, build_version) for c in CONCERTS]
 
     shutil.copy(LOG_FILE, os.path.join(OUT, "Pool_Log.xlsx"))
     if os.path.exists(GUIDE_SRC):
         shutil.copy(GUIDE_SRC, os.path.join(OUT, "Taylor_K2006_Testing_Guide.docx"))
 
     n_photos = len(os.listdir(os.path.join(OUT, "photos"))) if os.path.isdir(os.path.join(OUT, "photos")) else 0
-    print(f"Built _site/: {len(tests)} test rows, {len(doses)} dose rows, {n_photos} photos, "
-          f"{len(concert_images)}+{len(concert_videos)} concert photos+videos.")
+    concert_summary = ", ".join(f"{c['label']} {ci}+{cv}" for c, (ci, cv) in zip(CONCERTS, concert_counts))
+    print(f"Built _site/: {len(tests)} test rows, {len(doses)} dose rows, {n_photos} photos; "
+          f"concerts {concert_summary} (photos+videos).")
 
 
 if __name__ == "__main__":
