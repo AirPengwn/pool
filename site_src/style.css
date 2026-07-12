@@ -196,12 +196,16 @@ table.logtable td a { font-weight: 500; }
 .night-nav a:hover { color: var(--teal); border-color: var(--teal); text-decoration: none; }
 .night-nav a.active { background: var(--teal); color: #fff; border-color: var(--teal); }
 
-/* Concert setlist, shown above the media */
-.setlist { margin: 6px 0 22px; }
-.setlist-list { columns: 220px 2; column-gap: 34px; margin: 6px 0 4px; padding-left: 1.5em; }
-.setlist-list li { margin: 3px 0; break-inside: avoid; color: var(--text-primary); }
-.setlist-list li::marker { color: var(--text-muted); font-size: 12px; }
-.setlist-encore { margin: 12px 0 4px; font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+/* Concert setlist, shown above the media -- grouped into acts / stages */
+.setlist { margin: 6px 0 24px; }
+.setlist-acts { columns: 280px 2; column-gap: 44px; }
+.setlist-act { break-inside: avoid; margin-bottom: 15px; }
+.setlist-act-label { font-size: 11px; font-weight: 500; letter-spacing: .07em; text-transform: uppercase; color: var(--teal); margin-bottom: 5px; padding-bottom: 3px; border-bottom: 0.5px solid var(--border); }
+.setlist-act-label.encore { color: var(--coral); }
+.setlist-songs { margin: 5px 0 0; padding-left: 1.9em; }
+.setlist-songs li { margin: 3px 0; color: var(--text-primary); }
+.setlist-songs li::marker { color: var(--text-muted); font-size: 12px; }
+.song-note { display: block; font-size: 11px; font-style: italic; color: var(--text-muted); line-height: 1.35; margin-top: 1px; }
 
 /* Small, unobtrusive footer link (the "concert" link at the bottom of the dashboard) */
 .site-footer { text-align: center; padding: 20px 0 44px; }

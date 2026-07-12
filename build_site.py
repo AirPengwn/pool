@@ -378,23 +378,43 @@ CONCERTS = [
         "page": "concert.html", "dir": CONCERT_SRC, "web": "concert", "label": "Night 1",
         "heading": "Noah Kahan — July 8, 2026 · Fenway Park, Boston, MA",
         "title": "Noah Kahan — Night 1 (July 8, 2026)",
-        "setlist": ["American Cars", "Doors", "All My Love", "Deny Deny Deny", "Staying Still",
-                    "Haircut", "Downfall", "Mess", "She Calls Me Back", "Dashboard", "Dial Drunk",
-                    "We Go Way Back", "Porch Light", "Orbiter", "Maine", "Paid Time Off", "Lighthouse",
-                    "The View Between Villages", "Northern Attitude", "The Great Divide", "Orange Juice",
-                    "New Perspective"],
-        "encore": ["End of August", "Homesick", "Stick Season"],
+        "acts": [
+            {"name": "Act 1 · Main Stage", "songs": ["American Cars", "Doors", "All My Love", "Deny Deny Deny", "Staying Still"]},
+            {"name": "Act 2 · B-Stage", "songs": ["Haircut", "Downfall", "Mess"]},
+            {"name": "Act 3 · Main Stage", "songs": [
+                {"t": "She Calls Me Back", "note": "with Gigi Perez · Big Papi cameo on the screen before the song"},
+                "Dashboard", "Dial Drunk"]},
+            {"name": "Act 4 · Roof / Main Stage", "songs": ["We Go Way Back", "Porch Light"]},
+            {"name": "Act 5 · C-Stage", "songs": [
+                {"t": "Orbiter", "note": "extended outro"}, "Maine", "Paid Time Off",
+                {"t": "Lighthouse", "note": "live debut"},
+                {"t": "The View Between Villages", "note": "extended"}]},
+            {"name": "Act 6 · Main Stage", "songs": ["Northern Attitude", "The Great Divide", "Orange Juice", "New Perspective"]},
+            {"name": "Encore", "encore": True, "songs": [
+                "End of August", "Homesick",
+                {"t": "Stick Season", "note": "extended · fireworks at the end"}]},
+        ],
     },
     {
         "page": "concert2.html", "dir": CONCERT2_SRC, "web": "concert2", "label": "Night 2",
         "heading": "Noah Kahan — July 11, 2026 · Fenway Park, Boston, MA",
         "title": "Noah Kahan — Night 2 (July 11, 2026)",
-        "setlist": ["American Cars", "Doors", "All My Love", "Deny Deny Deny", "Staying Still",
-                    "Haircut", "Downfall", "Forever", "She Calls Me Back", "Dashboard", "Dial Drunk",
-                    "Willing and Able", "Porch Light", "Orbiter", "23", "Paid Time Off", "Dan",
-                    "The View Between Villages", "Northern Attitude", "The Great Divide", "Carlo's Song",
-                    "New Perspective"],
-        "encore": ["End of August", "Homesick", "Stick Season"],
+        "acts": [
+            {"name": "Act 1 · Main Stage", "songs": ["American Cars", "Doors", "All My Love", "Deny Deny Deny", "Staying Still"]},
+            {"name": "Act 2 · B-Stage", "songs": ["Haircut", "Downfall",
+                {"t": "Forever", "note": "dedicated to Zuza"}]},
+            {"name": "Act 3 · Main Stage", "songs": [
+                {"t": "She Calls Me Back", "note": "with Gigi Perez · Noah's mom on the screen reveals he's added to the Fenway Music Hall of Fame"},
+                "Dashboard", "Dial Drunk"]},
+            {"name": "Act 4 · Roof / Main Stage", "songs": ["Willing and Able", "Porch Light"]},
+            {"name": "Act 5 · C-Stage", "songs": ["Orbiter",
+                {"t": "23", "note": "live debut"}, "Paid Time Off", "Dan",
+                {"t": "The View Between Villages", "note": "extended"}]},
+            {"name": "Act 6 · Main Stage", "songs": ["Northern Attitude", "The Great Divide", "Carlo's Song", "New Perspective"]},
+            {"name": "Encore", "encore": True, "songs": [
+                "End of August", "Homesick",
+                {"t": "Stick Season", "note": "extended · fireworks at the end"}]},
+        ],
     },
 ]
 
@@ -421,17 +441,28 @@ def scan_concert_dir(src_dir, web_name):
 
 
 def setlist_html(concert):
-    main, enc = concert.get("setlist", []), concert.get("encore", [])
-    if not main and not enc:
+    """Render the setlist grouped into acts/stages, continuously numbered across acts,
+    with optional per-song notes (guest, live debut, extended, cameos). A song is either
+    a plain title string or a {"t": title, "note": ...} dict."""
+    acts = concert.get("acts")
+    if not acts:
         return ""
-    out = ['<section class="setlist"><h2 class="concert-sub">Setlist</h2>']
-    out.append('<ol class="setlist-list">' + "".join(f"<li>{esc(s)}</li>" for s in main) + "</ol>")
-    if enc:
-        out.append('<div class="setlist-encore">Encore</div>')
-        out.append(f'<ol class="setlist-list" start="{len(main) + 1}">'
-                   + "".join(f"<li>{esc(s)}</li>" for s in enc) + "</ol>")
-    out.append("</section>")
-    return "".join(out)
+    blocks, n = [], 1
+    for act in acts:
+        songs = act["songs"]
+        items = []
+        for s in songs:
+            if isinstance(s, dict):
+                note = f'<span class="song-note">{esc(s["note"])}</span>' if s.get("note") else ""
+                items.append(f'<li>{esc(s["t"])}{note}</li>')
+            else:
+                items.append(f"<li>{esc(s)}</li>")
+        label_cls = "setlist-act-label encore" if act.get("encore") else "setlist-act-label"
+        blocks.append(f'<div class="setlist-act"><div class="{label_cls}">{esc(act["name"])}</div>'
+                      f'<ol class="setlist-songs" start="{n}">{"".join(items)}</ol></div>')
+        n += len(songs)
+    return ('<section class="setlist"><h2 class="concert-sub">Setlist</h2>'
+            f'<div class="setlist-acts">{"".join(blocks)}</div></section>')
 
 
 def build_concert_page(concert, all_concerts, build_version):
