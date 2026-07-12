@@ -23,7 +23,7 @@ CONFIG = {
     "ppm_per_gallon": 3.5,
 
     # Current stabilizer level. Update after each CYA recheck.
-    "cya_current": 150,
+    "cya_current": 144,
 
     # FC band as a fraction of CYA. floor ~7%, target top ~10% of CYA.
     "fc_floor_frac": 0.07,
