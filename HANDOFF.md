@@ -1,6 +1,8 @@
 # Pool Assistant — Session Handoff
 _Written 2026-07-16 to carry full context into a fresh session. **Read this AND `POOL.md` before doing anything.** This file = the current live state + active issues; `POOL.md` = the deep source-of-truth history._
 
+> **📌 STATUS AT THE MOVE — Friday 2026-07-17 (TF-100 arrival day):** Last logged reading is **7/16 noon** (FC ~14.5 corrected & at aim; CC 0.4; no dose needed since the 7/15 1.5-gal dose). 6 pool/level photos are already filed for **7/17** (in `photos/2026-07-17_*.jpeg`), awaiting today's reading. **➡️ TODAY'S KEY JOB: when the TF-100 kit arrives (USPS ETA today by 9pm), have John run a real FC and RECALIBRATE the ~1.5× over-read factor — see §4.** Then resume normal FC logging + precise dosing.
+
 ---
 
 ## 1. What this is
