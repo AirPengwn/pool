@@ -17,10 +17,21 @@ import argparse
 # you should normally need to edit.
 # ----------------------------------------------------------------------
 CONFIG = {
-    "pool_gallons": 34400,
+    # FULL volume, from measured hopper geometry 2026-07-17 (40x20; 12ft shallow
+    # shelf @3ft; deep hopper 10x14 flat @8.5ft; ALL walls 3ft -- see pool_volume.py).
+    # Was 34400, a ~9% overestimate that used avg-depth 5.75; the real bowl-shaped
+    # hopper holds less. Current volume ~30,700 at the 7/17 level (1.5in low);
+    # use ~196 gal/cm on the skimmer ruler for day-to-day level->gallons.
+    "pool_gallons": 31400,
 
-    # 1 gallon of 12.5% liquid chlorine raises FC by this many ppm in this pool
-    "ppm_per_gallon": 3.5,
+    # 1 gallon of 12.5% liquid chlorine raises FC by this many ppm in this pool.
+    # 3.84 = 34400*3.5/31400 -- rescaled when the volume was corrected 2026-07-17
+    # (the old 3.5 was tied to the 34400 overestimate, so doses were ~9% weak on
+    # paper -> part of the season-long high-prediction bias). NOTE: evening_l24 below
+    # was fit against the OLD 3.5; with dosing now stronger, re-watch forward pred
+    # errors and expect to nudge l24 back UP (it was compressed to compensate for the
+    # too-weak response). Re-validate before trusting evening predictions again.
+    "ppm_per_gallon": 3.84,
 
     # Current stabilizer level. Update after each CYA recheck.
     "cya_current": 144,

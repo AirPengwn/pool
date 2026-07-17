@@ -1,7 +1,7 @@
 # Pool Assistant — Session Handoff
 _Written 2026-07-16 to carry full context into a fresh session. **Read this AND `POOL.md` before doing anything.** This file = the current live state + active issues; `POOL.md` = the deep source-of-truth history._
 
-> **📌 STATUS AT THE MOVE — Friday 2026-07-17 (TF-100 arrival day):** Last logged reading is **7/16 noon** (FC ~14.5 corrected & at aim; CC 0.4; no dose needed since the 7/15 1.5-gal dose). 6 pool/level photos are already filed for **7/17** (in `photos/2026-07-17_*.jpeg`), awaiting today's reading. **➡️ TODAY'S KEY JOB: when the TF-100 kit arrives (USPS ETA today by 9pm), have John run a real FC and RECALIBRATE the ~1.5× over-read factor — see §4.** Then resume normal FC logging + precise dosing.
+> **📌 STATUS — updated Fri 2026-07-17 evening. BOTH active issues RESOLVED.** TF-100 kit arrived; John measured **FC 17.6 (88 drops, two clean first-clear titrations)** → real FC logging resumed (the 7/11–7/16 blank-estimate era is closed). The whole reagent saga's root cause turned out to be a **pool-volume error**: measured geometry gives **~31,400 gal FULL** (not 34,400), so the old reagent over-read only ~1.2× and 17.6 is legit. `dose.py` recalibrated to **31,400 gal / 3.84 ppm/gal** (new `pool_volume.py` shows the math). The GitHub Actions deploy incident also cleared — **auto-deploy works again; back to plain `git push origin main`** (manual gh-pages workaround dropped). Latest reading **7/17 noon: FC 17.6** (above the 13–15 band but safe at CYA 144; **no dose — it coasts into band over ~2–4 days**), CC 0.2, temp 78, level 12.0 cm / shallow 34.5 in (~30,700 gal current). New tool: **skimmer ruler ≈ 196 gal/cm** for daily loss/fill tracking. Full story in the POOL.md changelog (2026-07-17) and the 7/17 log row. (History below is now "how we got here," not open to-dos.)
 
 ---
 
@@ -29,7 +29,8 @@ Ongoing pool-maintenance assistant for **John** (Guilford, CT). **34,400-gal ing
 
 Water crystal clear all season, no algae. **Season chlorine total: 28.5 gal.** Last dose: **1.5 gal, 7/15 8pm.** No dose 7/16 (at aim).
 
-## 4. 🔴 ACTIVE ISSUE #1 — the reagent saga (MOST IMPORTANT — read carefully)
+## 4. ✅ RESOLVED 2026-07-17 — ISSUE #1, the reagent saga
+_Closed: TF-100 arrived, FC 17.6 measured (88 drops ×2, proper first-clear). Root cause was the pool-volume overestimate (now ~31,400 gal), which had inflated the apparent over-read; old reagent was only ~1.2×. Real FC logging resumed. History below is context._
 The FAS-DPD **FC titrant reagent is bad: it over-reads FC by ~1.5×.** BOTH the "new" bottle (opened 7/11) and the season-start "very old" bottle over-read the same amount — likely aged FAS + a high-CYA endpoint-fade effect. **So the FC *number* is untrustworthy** (a reading of ~21 / 105 drops is really ~14). pH/TA/CH/CYA/CC/temp/level are all still fine (cross-validated by test strips).
 
 **How FC is being handled:**
@@ -41,7 +42,8 @@ The FAS-DPD **FC titrant reagent is bad: it over-reads FC by ~1.5×.** BOTH the 
 **FRIDAY ACTION:** when it lands, have John run a real FC. **Recalibrate the ~1.5× over-read factor** against the true number, note in the log where the estimate era ends and measured FC resumes, then **go back to logging the real FC in the column + precise dosing.** Saga closed.
 Endpoint tip for the new kit (high CYA): take the FIRST clear + hold ~15s; a faint re-pink is the CYA effect, not more chlorine. CC precision doesn't matter (it's been low all season).
 
-## 5. 🟡 ACTIVE ISSUE #2 — deploy via manual gh-pages push
+## 5. ✅ RESOLVED 2026-07-17 — ISSUE #2, deploy (auto-deploy works again)
+_Closed: GitHub Actions incident cleared; the "Deploy pool dashboard" workflow has been succeeding on every `main` push since ~7/12. Back to plain `git push origin main` — the manual gh-pages workaround below is no longer needed._
 A **GitHub Actions incident ("Delays starting Actions runs")** started **2026-07-09**; the auto-deploy Action (`.github/workflows/deploy.yml` — builds `_site/`, pushes to `gh-pages`) has been stuck/failing. **Workaround in use:** after `build_site.py`, manually publish `_site/` to `gh-pages` from a temp dir (do NOT use the session scratchpad path from the old session — make your own):
 ```bash
 git clone --depth 1 --branch gh-pages --single-branch https://github.com/AirPengwn/pool.git /tmp/ghp
