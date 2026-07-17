@@ -274,8 +274,8 @@ def scan_and_resize_photos():
 
 
 def build_photos(tests, by_date, videos_by_date, build_version):
-    floor, aim = D.band_for_cya(D.CONFIG["cya_current"], D.CONFIG)
-    SAFE_SWIM_CEILING = 19  # matches site_src/index.html; high-teens FC is safe at this CYA
+    floor, _ = D.band_for_cya(D.CONFIG["cya_current"], D.CONFIG)
+    SAFE_SWIM_CEILING = 19  # matches the FC gauge zones in site_src/index.html
     test_by_date = {str(t["date"]): t for t in tests}
 
     def stat_tile(label, value):
@@ -287,13 +287,11 @@ def build_photos(tests, by_date, videos_by_date, build_version):
             return ""
         fcv = t["fc"]
         if fcv < floor:
-            pill_cls, pill_label = "watch", "below floor"
-        elif fcv <= aim:
-            pill_cls, pill_label = "good", "in target band"
+            pill_cls, pill_label = "watch", "too low"
         elif fcv <= SAFE_SWIM_CEILING:
-            pill_cls, pill_label = "good", "above band · safe to swim"
+            pill_cls, pill_label = "good", "in ideal range"
         else:
-            pill_cls, pill_label = "watch", "above safe range"
+            pill_cls, pill_label = "watch", "running high"
         tiles = [
             f'<div><div class="stat-label">Free chlorine</div><div class="stat-value big serif" style="color:var(--teal);">{t["fc"]:.1f}</div></div>',
             f'<span class="pill {pill_cls}">{pill_label}</span>',
