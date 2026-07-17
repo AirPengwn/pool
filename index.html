@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="theme.js?v=20260717185347"></script>
+<script src="theme.js?v=20260717190913"></script>
 <title>Summer 2026 Pool Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
-<link rel="stylesheet" href="style.css?v=20260717185347">
+<link rel="stylesheet" href="style.css?v=20260717190913">
 </head>
 <body>
 <header class="masthead">
@@ -332,7 +332,19 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
   });
   const latest = tests[tests.length - 1];
   const prev = tests.length > 1 ? tests[tests.length - 2] : null;
-  const inBand = latest.fc >= meta.fc_floor;
+  // Safe-and-swimmable ceiling: POOL.md notes that at this pool's CYA (~150),
+  // FC up into the "high teens" is safe and fully swimmable -- wider than the
+  // tighter operational target band. Not CYA-scaled (no formula given); revisit
+  // if CYA is re-anchored materially.
+  const SAFE_SWIM_CEILING = 19;
+  // Hero badge state. Below floor or above the safe ceiling are worth flagging
+  // (amber); floor..aim is the daily target (green); above aim but still under the
+  // ceiling is above target yet safe/swimmable at this CYA (green, its own label).
+  const fcStatus =
+      latest.fc < meta.fc_floor      ? { cls: 'watch', label: 'below floor' }
+    : latest.fc <= meta.fc_aim       ? { cls: 'good',  label: 'in target band' }
+    : latest.fc <= SAFE_SWIM_CEILING ? { cls: 'good',  label: 'above band · safe to swim' }
+    :                                  { cls: 'watch', label: 'above safe range' };
   const delta = prev ? Math.round((latest.fc - prev.fc) * 10) / 10 : null;
 
   const stat = (label, value) => `<div><div class="stat-label">${label}</div><div class="stat-value">${value}</div></div>`;
@@ -342,13 +354,13 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
     <div>
       <div class="stat-label">As of</div>
       <div class="hero-date" style="font-size:15px;">${fmtDate(latest.date)}, ${latest.time}</div>
-      <div class="loc">Guilford, CT · 34,400 gal vinyl liner</div>
+      <div class="loc">Guilford, CT · ~31,400 gal vinyl liner</div>
     </div>
     <div>
       <div class="stat-label">Free chlorine</div>
       <div class="stat-value big serif" style="color:var(--teal);">${latest.fc.toFixed(1)}</div>
     </div>
-    <span class="pill ${inBand ? 'good' : 'watch'}">${inBand ? 'in target band' : 'below floor'}</span>
+    <span class="pill ${fcStatus.cls}">${fcStatus.label}</span>
     ${stat('Combined chlorine', latest.cc.toFixed(1))}
     ${latest.water_temp != null ? stat('Water temp', `${latest.water_temp.toFixed(1)}°F`) : ''}
     ${latest.sun_hrs != null ? stat('Sun that day', `${latest.sun_hrs.toFixed(1)} hrs`) : ''}
@@ -356,12 +368,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
 
   const axisTitle = text => ({ display: true, text, color: '#8C8478', font: { size: 11, weight: '500' } });
 
-  // Safe-and-swimmable ceiling: POOL.md notes that at this pool's CYA (~150),
-  // FC up into the "high teens" is safe and fully swimmable -- wider than the
-  // tighter operational target band. Not CYA-scaled (no formula given); revisit
-  // if CYA is re-anchored materially.
-  const SAFE_SWIM_CEILING = 19;
-
+  // (SAFE_SWIM_CEILING is defined above, near the hero badge.)
   const dates = tests.map(t => fmtDate(t.date));
   const fc = tests.map(t => t.fc);
   const cc = tests.map(t => t.cc);
@@ -405,8 +412,18 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
 
   const scored = doses.filter(d => d.pred_fc != null).map(d => {
     const nextTest = tests.find(t => t.date > d.date);
-    return { predDate: d.date, predFc: d.pred_fc, testDate: nextTest ? nextTest.date : null, actualFc: nextTest ? nextTest.fc : null };
-  });
+    // pred_fc is a NEXT-NOON (1-day-ahead) prediction: score it only against a test
+    // the very next day that actually has an FC. If that following test is blank
+    // (the reagent-estimate era) or 2+ days out (a skipped test), it isn't a valid
+    // score -- don't skip forward across the gap and compare across a reagent change
+    // / recalibration (see POOL.md). Genuinely-future preds (no test yet) stay pending.
+    const gap = nextTest ? Math.round((new Date(nextTest.date) - new Date(d.date)) / 864e5) : null;
+    const ok = nextTest && nextTest.fc != null && gap === 1;
+    return { predDate: d.date, predFc: d.pred_fc,
+             testDate: ok ? nextTest.date : null,
+             actualFc: ok ? nextTest.fc : null,
+             pending: !nextTest };
+  }).filter(s => s.testDate || s.pending);
   const predLabels = scored.map(s => s.testDate ? fmtDate(s.testDate) : `${fmtDate(s.predDate)} → pending`);
   new Chart(document.getElementById('predChart'), {
     type: 'bar',
