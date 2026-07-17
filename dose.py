@@ -28,9 +28,11 @@ CONFIG = {
     # 3.84 = 34400*3.5/31400 -- rescaled when the volume was corrected 2026-07-17
     # (the old 3.5 was tied to the 34400 overestimate, so doses were ~9% weak on
     # paper -> part of the season-long high-prediction bias). NOTE: evening_l24 below
-    # was fit against the OLD 3.5; with dosing now stronger, re-watch forward pred
-    # errors and expect to nudge l24 back UP (it was compressed to compensate for the
-    # too-weak response). Re-validate before trusting evening predictions again.
+    # was fit against the OLD 3.5, but the 2026-07-17 back-test (backtest_volume.py)
+    # shows 3.84 + the current l24 is already near-unbiased (mean signed err +0.04),
+    # so DON'T raise l24 -- leave it and watch forward errors. The tiny residual is
+    # still mildly positive (slight under-predict), so if anything R trends ~3.9
+    # (pool often sits below full) rather than l24 needing a bump.
     "ppm_per_gallon": 3.84,
 
     # Current stabilizer level. Update after each CYA recheck.
