@@ -274,7 +274,8 @@ def scan_and_resize_photos():
 
 
 def build_photos(tests, by_date, videos_by_date, build_version):
-    floor, _ = D.band_for_cya(D.CONFIG["cya_current"], D.CONFIG)
+    floor, aim = D.band_for_cya(D.CONFIG["cya_current"], D.CONFIG)
+    SAFE_SWIM_CEILING = 19  # matches site_src/index.html; high-teens FC is safe at this CYA
     test_by_date = {str(t["date"]): t for t in tests}
 
     def stat_tile(label, value):
@@ -284,10 +285,18 @@ def build_photos(tests, by_date, videos_by_date, build_version):
         t = test_by_date.get(day)
         if not t or not isinstance(t.get("fc"), (int, float)):
             return ""
-        in_band = t["fc"] >= floor
+        fcv = t["fc"]
+        if fcv < floor:
+            pill_cls, pill_label = "watch", "below floor"
+        elif fcv <= aim:
+            pill_cls, pill_label = "good", "in target band"
+        elif fcv <= SAFE_SWIM_CEILING:
+            pill_cls, pill_label = "good", "above band · safe to swim"
+        else:
+            pill_cls, pill_label = "watch", "above safe range"
         tiles = [
             f'<div><div class="stat-label">Free chlorine</div><div class="stat-value big serif" style="color:var(--teal);">{t["fc"]:.1f}</div></div>',
-            f'<span class="pill {"good" if in_band else "watch"}">{"in target band" if in_band else "below floor"}</span>',
+            f'<span class="pill {pill_cls}">{pill_label}</span>',
             stat_tile("Combined chlorine", f'{t["cc"]:.1f}' if isinstance(t.get("cc"), (int, float)) else "—"),
         ]
         if isinstance(t.get("water_temp"), (int, float)):

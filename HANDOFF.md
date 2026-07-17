@@ -6,7 +6,7 @@ _Written 2026-07-16 to carry full context into a fresh session. **Read this AND 
 ---
 
 ## 1. What this is
-Ongoing pool-maintenance assistant for **John** (Guilford, CT). **34,400-gal inground vinyl-liner** pool, 2026 season. You help him keep chlorine dialed in, log every reading into `Pool_Log.xlsx`, analyze/photograph the pool, and maintain a public dashboard website. `POOL.md` is the source of truth (specs, chemistry approach, website + deploy docs, full changelog).
+Ongoing pool-maintenance assistant for **John** (Guilford, CT). **~31,400-gal inground vinyl-liner** pool, 2026 season. You help him keep chlorine dialed in, log every reading into `Pool_Log.xlsx`, analyze/photograph the pool, and maintain a public dashboard website. `POOL.md` is the source of truth (specs, chemistry approach, website + deploy docs, full changelog).
 
 ## 2. How to work — standing rules (non-negotiable)
 - **Honest & math-grounded. NEVER round or invent a reading.** If a number looks off, say so and reason it out (this has caught several real errors this season).
