@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="theme.js?v=20260717190913"></script>
+<script src="theme.js?v=20260717191554"></script>
 <title>Summer 2026 Pool Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
-<link rel="stylesheet" href="style.css?v=20260717190913">
+<link rel="stylesheet" href="style.css?v=20260717191554">
 </head>
 <body>
 <header class="masthead">
@@ -337,14 +337,14 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
   // tighter operational target band. Not CYA-scaled (no formula given); revisit
   // if CYA is re-anchored materially.
   const SAFE_SWIM_CEILING = 19;
-  // Hero badge state. Below floor or above the safe ceiling are worth flagging
-  // (amber); floor..aim is the daily target (green); above aim but still under the
-  // ceiling is above target yet safe/swimmable at this CYA (green, its own label).
+  // Mirror the FC gauge's zones (floor..ceiling) so the hero badge and the gauge
+  // tell one story. fc_aim is the *dosing* target (a goal when adding chlorine),
+  // not a status threshold, so the badge treats the whole floor..ceiling span as
+  // ideal -- the chemistry chart still shows the tighter daily-target band as context.
   const fcStatus =
-      latest.fc < meta.fc_floor      ? { cls: 'watch', label: 'below floor' }
-    : latest.fc <= meta.fc_aim       ? { cls: 'good',  label: 'in target band' }
-    : latest.fc <= SAFE_SWIM_CEILING ? { cls: 'good',  label: 'above band · safe to swim' }
-    :                                  { cls: 'watch', label: 'above safe range' };
+      latest.fc < meta.fc_floor      ? { cls: 'watch', label: 'too low' }
+    : latest.fc <= SAFE_SWIM_CEILING ? { cls: 'good',  label: 'in ideal range' }
+    :                                  { cls: 'watch', label: 'running high' };
   const delta = prev ? Math.round((latest.fc - prev.fc) * 10) / 10 : null;
 
   const stat = (label, value) => `<div><div class="stat-label">${label}</div><div class="stat-value">${value}</div></div>`;
