@@ -168,6 +168,7 @@ def build_log_html(all_rows, photo_days, build_version):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
 <link rel="stylesheet" href="style.css?v={build_version}">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
 <header class="masthead">
@@ -327,6 +328,7 @@ def build_photos(tests, by_date, videos_by_date, build_version):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
 <link rel="stylesheet" href="style.css?v={build_version}">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
 <header class="masthead">
@@ -561,6 +563,7 @@ def build_concert_page(concert, all_concerts, build_version):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
 <link rel="stylesheet" href="style.css?v={build_version}">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
 <header class="masthead">
@@ -628,6 +631,7 @@ def main():
 
     shutil.copy(os.path.join(HERE, "site_src", "style.css"), os.path.join(OUT, "style.css"))
     shutil.copy(os.path.join(HERE, "site_src", "theme.js"), os.path.join(OUT, "theme.js"))
+    shutil.copy(os.path.join(HERE, "site_src", "favicon.svg"), os.path.join(OUT, "favicon.svg"))
     with open(os.path.join(HERE, "site_src", "index.html"), encoding="utf-8") as fh:
         index_html = fh.read()
     index_html = index_html.replace('href="style.css"', f'href="style.css?v={build_version}"')
