@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Pool">
+  <!-- Favicon for the pool dashboard. Palette matches the site: deep teal
+       (#1D7A96, the FC/accent colour), amber sun (#EF9F27, the CC colour) and
+       pale blue water (#B9D9E3, the "predicted" bar colour). Kept to three bold
+       shapes so it still reads at 16px in a browser tab. -->
+  <defs>
+    <clipPath id="tile"><rect width="64" height="64" rx="14"/></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="64" height="64" fill="#1D7A96"/>
+    <circle cx="45" cy="18" r="9" fill="#EF9F27"/>
+    <path d="M-2 43 q9 -7 18 0 t18 0 t18 0 t18 0 V66 H-2 Z" fill="#B9D9E3"/>
+    <path d="M-2 52 q9 -7 18 0 t18 0 t18 0 t18 0 V66 H-2 Z" fill="#FFFFFF" opacity="0.5"/>
+  </g>
+</svg>
