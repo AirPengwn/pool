@@ -116,6 +116,7 @@ LOG_COLUMNS = [
     ("rain_in", "Rain"), ("fill_gal", "Fill"), ("water_temp", "Water temp"),
     ("water_level_cm", "Water level"),
     ("weather", "Weather"), ("photo", "Photo"), ("notes", "Notes"),
+    ("load", "Load"),
 ]
 
 

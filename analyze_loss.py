@@ -26,7 +26,7 @@ GAL_PER_CM     = 196.3      # 800 sq ft surface, vertical walls in the top 3 ft
 CL_MASS_PER_GAL = 3.5 * 34400.0   # ppm*gal delivered by 1 gal of 12.5% (volume-independent)
 
 LOG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Pool_Log.xlsx")
-C = dict(date=1, type=3, fc=5, sun=15, rain=16, temp=18, level=19, dose=13)
+C = dict(date=1, type=3, fc=5, sun=15, rain=16, temp=18, level=19, dose=13, load=23)
 GOOD_FROM = date(2026, 6, 24)     # fresh FAS-DPD onwards
 
 
@@ -71,7 +71,7 @@ def main():
         if typ.startswith("TEST") and d not in tests:      # first (noon) test wins
             tests[d] = dict(fc=num(r[C["fc"] - 1]), sun=num(r[C["sun"] - 1]),
                             rain=num(r[C["rain"] - 1]), temp=num(r[C["temp"] - 1]),
-                            level=num(r[C["level"] - 1]))
+                            level=num(r[C["level"] - 1]), load=r[C["load"] - 1])
         if typ.startswith("DOSE"):
             doses[d] = doses.get(d, 0.0) + (num(r[C["dose"] - 1]) or 0.0)
 
@@ -103,6 +103,9 @@ def main():
                           v0=v0, v1=v1, added=v1 - v0,
                           loss=loss_mass / vavg, fcavg=(a["fc"] + b["fc"]) / 2,
                           sun=a["sun"], temp=a["temp"], rain=a["rain"],
+                          # Load is recorded on the ENDING test -- it describes what
+                          # the pool experienced during the window just measured.
+                          load=b.get("load"),
                           exact=level_seen.get(d) and level_seen.get(n)))
 
     print(f"{'day':<12}{'FC0':>6}{'FC1':>6}{'dose':>6}{'water+':>8}{'loss':>7}"
@@ -140,7 +143,7 @@ def main():
         if s < 8:
             return 3.0
         return 3.5
-    cands = {"current sun-buckets": [bucket(p) for p in pairs],
+    cands = {"old sun-buckets 2.5/3/3.5": [bucket(p) for p in pairs],
              "flat mean": [mean_loss] * n}
     sub = [p for p in pairs if p["fcavg"] is not None]
     k, d0, _ = fit([p["fcavg"] for p in sub], [p["loss"] for p in sub])
@@ -152,6 +155,18 @@ def main():
         errs = [l - q for l, q in zip(losses, pred)]
         bias = sum(errs) / n
         print(f"  {name:<28} MAE {mae(errs):.2f}   bias {bias:+.2f}")
+
+    # --- loss by load class: the driver that actually matters ---
+    byload = {}
+    for p in pairs:
+        byload.setdefault(str(p["load"] or "(unrecorded)"), []).append(p["loss"])
+    print("\n-- loss by LOAD class (the real driver) --")
+    for k, v in sorted(byload.items(), key=lambda kv: -sum(kv[1]) / len(kv[1])):
+        m = sum(v) / len(v)
+        sd = (sum((x - m) ** 2 for x in v) / (len(v) - 1)) ** 0.5 if len(v) > 1 else float("nan")
+        print(f"  {k:<14} n={len(v):<3} mean {m:.2f}" + (f"   sd {sd:.2f}" if len(v) > 1 else ""))
+    print("\n(Once several weeks of load flags accrue, fit L24 PER LOAD CLASS --\n"
+          " that should beat any sun/temp-based bucket.)")
 
 
 if __name__ == "__main__":

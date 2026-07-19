@@ -8,7 +8,8 @@ the cell styling from an existing data row so new rows match.
 Column order (fixed):
   Date, Time, Type, pH, FC, CC, FC loss (ppm/24h), Pred next-noon FC,
   Pred error (ppm), TA, CH, CYA, Chlorine added (gal), Cum. Cl (gal),
-  Sun (hrs), Rain (in), Fill (gal), Water temp (°F), Weather, Photo, Notes
+  Sun (hrs), Rain (in), Fill (gal), Water temp (°F), Water level (cm), Weather,
+  Photo, Notes, Load
 
 Row 1 = header, row 2 = SEASON TOTALS (live formulas, see format_log.py) —
 new rows always append after the last existing row, so these are untouched.
@@ -49,7 +50,7 @@ from openpyxl import load_workbook
 # Locate the workbook next to this script, so it works from any directory.
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Pool_Log.xlsx")
 SHEET = "Log"
-NCOLS = 22
+NCOLS = 23
 
 # JSON/arg key -> column index (1-based)
 COLS = {
@@ -57,8 +58,14 @@ COLS = {
     "fc_loss": 7, "pred_fc": 8, "pred_error": 9, "ta": 10, "ch": 11,
     "cya": 12, "chlorine_gal": 13, "cum_cl": 14, "sun_hrs": 15,
     "rain_in": 16, "fill_gal": 17, "water_temp": 18, "water_level_cm": 19,
-    "weather": 20, "photo": 21, "notes": 22,
+    "weather": 20, "photo": 21, "notes": 22, "load": 23,
 }
+# "load" (added 2026-07-19): what the pool actually experienced SINCE THE PREVIOUS
+# TEST -- i.e. the window whose FC drop this row measures. The mass-balance analysis
+# (analyze_loss.py) showed episodic organic load, not weather, drives loss variance
+# (quiet 3.07 +/- 0.61 vs dog 6.9 / party 4.0 / post-storm 3.8 / smoke 1.8), so this
+# is the field most likely to improve prediction. Vocabulary: quiet, swimmers,
+# party, dog, storm, smoke (combine with "+", e.g. "swimmers+dog").
 
 
 def get_styles(ws, template_row):

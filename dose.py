@@ -67,18 +67,26 @@ CONFIG = {
         "rain_sun_max": 3.0,     # sun hrs < this -> rainy/overcast day
         "partly_sun_max": 8.0,   # sun hrs < this -> partly
         "hot_temp": 80.0,        # water temp (F) at/above which sunny days lose more
-        # Buckets NARROWED 2026-07-06. Analysis of all fresh-reagent daily losses (see POOL.md
-        # "Loss-model calibration") found actual loss barely tracks sun -- slope ~0.08 ppm per
-        # sun-hour vs the ~0.25 these buckets implied (3x too steep). At CYA ~150 the stabilizer
-        # shields UV, so loss is a near-constant ~3 ppm/day background demand +/- large day-to-day
-        # noise (sunny days ALONE ranged 1.2-5.1). The old spread over-predicted sun (all +errors)
-        # and under-predicted rain (7/6's first -error). Compressed toward the ~3 mean:
-        "l24_rain": 2.5,         # was 1.5 -- rain/low-sun days actually averaged ~2.5 (storm demand + dilution offset the lack of UV)
-        "l24_partly": 3.0,
-        "l24_sunny": 3.5,        # was 4.0
-        "l24_hot_sunny": 3.5,    # was 4.0 (5.0 before 7/4). Hot days ran a touch higher (~3.85 avg); bump back toward ~3.8
-                                 # if that holds as more fresh-reagent hot-day data accrues. Keep re-analyzing loss vs weather
-                                 # AND vs reagent era (pre-6/24 old-reagent data stays excluded as unreliable).
+        # ---- FLATTENED 2026-07-19 (see analyze_loss.py + POOL.md changelog) ----
+        # A proper MASS-BALANCE re-analysis on the corrected volume (9 clean day-pairs,
+        # each day's true volume read off the skimmer ruler so rain dilution is exact)
+        # showed the weather structure earns nothing: flat-mean MAE 0.97 vs these
+        # buckets 0.98; water-temp correlation r=-0.00; sun r=+0.49 (n=6, NOT
+        # significant). An apparent FC relationship (r=-0.73) collapsed on a
+        # robustness check -- one dog-load outlier, not physics. Measured mean loss
+        # was 3.54 ppm/24h and the old spread UNDER-predicted by +0.49. So all four
+        # are now 3.5: matches the measured mean, ~zero bias, and drops structure the
+        # data shows is doing nothing.
+        # The real driver is EPISODIC ORGANIC LOAD, not weather -- quiet days sit at
+        # 3.07 +/- 0.61 while documented-event days ran dog 6.9 / party 4.0 /
+        # post-storm 3.8 / heavy smoke 1.8. That is why the log now carries a Load
+        # column; once a few weeks of load flags accrue, RE-FIT PER LOAD CLASS (that
+        # will beat anything sun-based). The three thresholds above are kept so the
+        # buckets can be re-differentiated later, but are currently inert.
+        "l24_rain": 3.5,
+        "l24_partly": 3.5,
+        "l24_sunny": 3.5,
+        "l24_hot_sunny": 3.5,
     },
 }
 

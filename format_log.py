@@ -16,7 +16,7 @@ Column layout (1-based):
   8 Pred next-noon FC  9 Pred error (ppm)  10 TA  11 CH  12 CYA
   13 Chlorine added (gal)  14 Cum. Cl (gal)  15 Sun (hrs)  16 Rain (in)
   17 Fill (gal)  18 Water temp (F)  19 Water level (cm)  20 Weather
-  21 Photo  22 Notes
+  21 Photo  22 Notes  23 Load
 
 Row 1 = header. Row 2 = SEASON TOTALS (live SUM formulas over Chlorine/Rain/
 Fill columns; A2:D2 merged for the label). Data starts row 3. Top two rows
@@ -34,7 +34,7 @@ from openpyxl.utils import get_column_letter
 # Locate the workbook next to this script, so it works from any directory.
 FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Pool_Log.xlsx")
 SHEET = "Log"
-NCOLS = 22
+NCOLS = 23
 DATA_START_ROW = 3   # row 1 = header, row 2 = totals, data from row 3
 # Column widths — captured from John's manual Excel adjustments (2026-06-27),
 # with Fill (gal) inserted at 15 on 2026-06-30, Pred next-noon FC / Pred error
@@ -42,7 +42,8 @@ DATA_START_ROW = 3   # row 1 = header, row 2 = totals, data from row 3
 # inserted at 19 (shifting Weather/Photo/Notes right by 1) on 2026-07-02. Edit here to change.
 WIDTHS = {1: 15.14, 2: 17.71, 3: 15.71, 4: 6.0, 5: 13.0, 6: 13.0, 7: 12.14,
           8: 13.0, 9: 12.0, 10: 6.0, 11: 13.0, 12: 8.0, 13: 12.0, 14: 11.0,
-          15: 9.0, 16: 8.0, 17: 10.0, 18: 11.0, 19: 13.0, 20: 38.0, 21: 16.0, 22: 83.86}
+          15: 9.0, 16: 8.0, 17: 10.0, 18: 11.0, 19: 13.0, 20: 38.0, 21: 16.0, 22: 83.86,
+          23: 14.0}   # Load added 2026-07-19
 MIN_ROW_HEIGHT = 20  # floor so single-line rows aren't crowded; tall rows auto-grow
 LEFT_WRAP = {20, 22}           # Weather, Notes -> left + wrap
 NUMFMT = {4: "0.0", 5: "0.0", 6: "0.0", 7: "0.0", 8: "0.0",
