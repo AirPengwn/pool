@@ -36,7 +36,10 @@ CONFIG = {
     "ppm_per_gallon": 3.84,
 
     # Current stabilizer level. Update after each CYA recheck.
-    "cya_current": 144,
+    # Re-anchored 2026-08-01: dilution test read 74 x2 = 148 (vs 144 on 7/12).
+    # The two agree inside the CYA test's ~+/-15%, so CYA is best read as STABLE
+    # at ~145 rather than genuinely rising. Band moves only aim 14 -> 15.
+    "cya_current": 148,
 
     # FC band as a fraction of CYA. floor ~7%, target top ~10% of CYA.
     "fc_floor_frac": 0.07,
