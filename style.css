@@ -138,6 +138,18 @@ main.wide h1, main.full h1 { font-family: 'Fraunces', Georgia, serif; font-weigh
 .hero-date .loc { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
 
 .hero-thumb { width: 92px; height: 92px; object-fit: cover; border-radius: 10px; border: 0.5px solid var(--border); display: block; flex-shrink: 0; }
+
+/* One-off hero feature (HERO_FEATURE in build_site.py): caption + looping video
+   shown in place of .hero-thumb on a configured date. flex-basis 100% puts it on
+   its own row above the stat tiles, which stay in their normal flex layout. */
+.hero-feature { flex: 0 0 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 4px; }
+.hero-feature-caption { font-size: 22px; color: var(--coral); text-align: center; line-height: 1.25; }
+.hero-feature-video {
+  max-height: 300px; max-width: 100%; width: auto; display: block;
+  border-radius: var(--radius); border: 0.5px solid var(--border);
+  box-shadow: var(--card-shadow); background: #000;
+}
+@media (max-width: 480px) { .hero-feature-video { max-height: 220px; } .hero-feature-caption { font-size: 19px; } }
 .stat-label { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
 .stat-value { font-size: 18px; font-weight: 500; }
 .stat-value.big { font-size: 38px; line-height: 1; }

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-08-07T17:07:28",
+    "generated_at": "2026-08-07T22:51:22",
     "pool_gallons": 31400,
     "cya_current": 148,
     "fc_floor": 10,
@@ -1015,5 +1015,6 @@
       "date": "2026-06-30",
       "gal": 158
     }
-  ]
+  ],
+  "hero_feature": null
 }
