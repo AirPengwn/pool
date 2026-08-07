@@ -63,6 +63,19 @@ def load_rows():
     return tests, doses, all_rows
 
 
+# One-off hero features: on a given date the dashboard hero shows a looping video
+# with a caption instead of the usual small thumbnail. Keyed by the date of the
+# TEST it should accompany, so it appears only once that day's reading is logged
+# and retires by itself the next day. The video must already be a web-ready .mp4
+# in photos/ (same pipeline as the Photos-page videos).
+HERO_FEATURE = {
+    "2026-08-08": {
+        "video": "2026-08-08_v1.mp4",
+        "caption": "Happy 9th Birthday Finnegan!",
+    },
+}
+
+
 def build_data_json(tests, doses, all_rows, photo_by_date):
     cfg = D.CONFIG
     floor, aim = D.band_for_cya(cfg["cya_current"], cfg)
@@ -102,6 +115,9 @@ def build_data_json(tests, doses, all_rows, photo_by_date):
             for r in all_rows
             if r["type"] and "Fill" in str(r["type"]) and isinstance(r["fill_gal"], (int, float))
         ],
+        # Only emitted when the LATEST test is on a featured date, so the hero
+        # reverts to the normal thumbnail automatically the following day.
+        "hero_feature": HERO_FEATURE.get(str(tests[-1]["date"])) if tests else None,
     }
     with open(os.path.join(OUT, "data.json"), "w") as fh:
         json.dump(data, fh, indent=2, default=str)

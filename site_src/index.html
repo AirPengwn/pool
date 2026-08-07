@@ -350,8 +350,19 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
 
   const stat = (label, value) => `<div><div class="stat-label">${label}</div><div class="stat-value">${value}</div></div>`;
 
+  // Optional one-off hero feature (see HERO_FEATURE in build_site.py): a looping
+  // muted video with a caption, shown INSTEAD of the small thumbnail, and only on
+  // the date it is configured for. Muted + playsinline so mobile browsers allow
+  // autoplay; no controls, so it reads as a banner rather than a player.
+  const feat = data.hero_feature;
   document.getElementById('heroBody').innerHTML = `
-    ${latest.thumb ? `<a href="photos.html#${latest.date}"><img class="hero-thumb" src="photos/${latest.thumb}" alt="Pool photo, ${fmtDate(latest.date)}"></a>` : ''}
+    ${feat ? `<div class="hero-feature">
+        <div class="hero-feature-caption serif">${feat.caption}</div>
+        <video class="hero-feature-video" src="photos/${feat.video}"
+               autoplay muted loop playsinline
+               aria-label="${feat.caption}"></video>
+      </div>` : ''}
+    ${latest.thumb && !feat ? `<a href="photos.html#${latest.date}"><img class="hero-thumb" src="photos/${latest.thumb}" alt="Pool photo, ${fmtDate(latest.date)}"></a>` : ''}
     <div>
       <div class="stat-label">As of</div>
       <div class="hero-date" style="font-size:15px;">${fmtDate(latest.date)}, ${latest.time}</div>
