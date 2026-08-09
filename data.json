@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-08-09T00:47:55",
+    "generated_at": "2026-08-09T16:45:06",
     "pool_gallons": 31400,
     "cya_current": 148,
     "fc_floor": 10,
@@ -808,6 +808,22 @@
       "rain_in": 0.05,
       "water_level_cm": 16,
       "thumb": "2026-08-08_1.jpg"
+    },
+    {
+      "date": "2026-08-09",
+      "time": "12:20",
+      "fc": 15.4,
+      "cc": 0.4,
+      "water_temp": 84,
+      "sun_hrs": 13,
+      "pred_error": 0.5,
+      "fc_loss": 2.8,
+      "ph": 7.7,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0,
+      "water_level_cm": 15.4,
+      "thumb": "2026-08-09_1.jpg"
     }
   ],
   "doses": [
@@ -1039,8 +1055,5 @@
       "gal": 158
     }
   ],
-  "hero_feature": {
-    "video": "2026-08-08_v1.mp4",
-    "caption": "Happy 9th Birthday Finnegan!"
-  }
+  "hero_feature": null
 }
