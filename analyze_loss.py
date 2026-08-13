@@ -159,14 +159,21 @@ def main():
     # --- loss by load class: the driver that actually matters ---
     byload = {}
     for p in pairs:
-        byload.setdefault(str(p["load"] or "(unrecorded)"), []).append(p["loss"])
+        # Load is "canonical[+canonical]; optional human qualifier" -- aggregate on
+        # the canonical part only, so detail in the qualifier does not fragment classes.
+        cls = str(p["load"] or "(unrecorded)").split(";")[0].strip()
+        byload.setdefault(cls, []).append(p["loss"])
     print("\n-- loss by LOAD class (the real driver) --")
     for k, v in sorted(byload.items(), key=lambda kv: -sum(kv[1]) / len(kv[1])):
         m = sum(v) / len(v)
         sd = (sum((x - m) ** 2 for x in v) / (len(v) - 1)) ** 0.5 if len(v) > 1 else float("nan")
         print(f"  {k:<14} n={len(v):<3} mean {m:.2f}" + (f"   sd {sd:.2f}" if len(v) > 1 else ""))
-    print("\n(Once several weeks of load flags accrue, fit L24 PER LOAD CLASS --\n"
-          " that should beat any sun/temp-based bucket.)")
+    print()
+    print("NOTE: load class was TESTED as a predictor and FAILED -- see POOL.md,")
+    print("2026-08-12/13. Classes overlap heavily (quiet mean 2.29 vs storm 2.06,")
+    print("both sd ~1.3), and leave-one-out CV showed every predictor -- alone AND")
+    print("combined -- is WORSE than a flat mean (analyze_multivar.py). These class")
+    print("means are DESCRIPTIVE ONLY; do NOT fit L24 per class.")
 
 
 if __name__ == "__main__":
