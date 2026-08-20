@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-08-20T17:25:39",
+    "generated_at": "2026-08-20T17:29:00",
     "pool_gallons": 31400,
     "cya_current": 148,
     "fc_floor": 10,
@@ -988,12 +988,12 @@
     {
       "date": "2026-08-20",
       "time": "12:45",
-      "fc": 16,
+      "fc": 17.9,
       "cc": 0.1,
       "water_temp": 80,
       "sun_hrs": 13,
       "pred_error": null,
-      "fc_loss": 2,
+      "fc_loss": null,
       "ph": null,
       "ta": 130,
       "cya": null,
