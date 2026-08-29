@@ -134,7 +134,7 @@ def main():
 
     # --- candidate models ---
     print("\n-- model comparison (MAE, ppm) --")
-    def bucket(p):                      # current dose.py evening_l24
+    def bucket(p):                      # HISTORICAL sun-buckets (retired 2026-07-19)
         s, t = p["sun"], p["temp"]
         if s is None:
             return 3.0
@@ -143,7 +143,10 @@ def main():
         if s < 8:
             return 3.0
         return 3.5
+    import dose as _D                   # score the LIVE constant, not a stale copy
+    _live = _D.CONFIG["evening_l24"]["l24_sunny"]
     cands = {"old sun-buckets 2.5/3/3.5": [bucket(p) for p in pairs],
+             f"LIVE dose.py flat {_live}": [_live] * n,
              "flat mean": [mean_loss] * n}
     sub = [p for p in pairs if p["fcavg"] is not None]
     k, d0, _ = fit([p["fcavg"] for p in sub], [p["loss"] for p in sub])

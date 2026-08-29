@@ -70,26 +70,36 @@ CONFIG = {
         "rain_sun_max": 3.0,     # sun hrs < this -> rainy/overcast day
         "partly_sun_max": 8.0,   # sun hrs < this -> partly
         "hot_temp": 80.0,        # water temp (F) at/above which sunny days lose more
-        # ---- FLATTENED 2026-07-19 (see analyze_loss.py + POOL.md changelog) ----
-        # A proper MASS-BALANCE re-analysis on the corrected volume (9 clean day-pairs,
-        # each day's true volume read off the skimmer ruler so rain dilution is exact)
-        # showed the weather structure earns nothing: flat-mean MAE 0.97 vs these
-        # buckets 0.98; water-temp correlation r=-0.00; sun r=+0.49 (n=6, NOT
-        # significant). An apparent FC relationship (r=-0.73) collapsed on a
-        # robustness check -- one dog-load outlier, not physics. Measured mean loss
-        # was 3.54 ppm/24h and the old spread UNDER-predicted by +0.49. So all four
-        # are now 3.5: matches the measured mean, ~zero bias, and drops structure the
-        # data shows is doing nothing.
-        # The real driver is EPISODIC ORGANIC LOAD, not weather -- quiet days sit at
-        # 3.07 +/- 0.61 while documented-event days ran dog 6.9 / party 4.0 /
-        # post-storm 3.8 / heavy smoke 1.8. That is why the log now carries a Load
-        # column; once a few weeks of load flags accrue, RE-FIT PER LOAD CLASS (that
-        # will beat anything sun-based). The three thresholds above are kept so the
-        # buckets can be re-differentiated later, but are currently inert.
-        "l24_rain": 3.5,
-        "l24_partly": 3.5,
-        "l24_sunny": 3.5,
-        "l24_hot_sunny": 3.5,
+        # ---- FLATTENED 2026-07-19, RE-FITTED 2026-08-29 (John's call both times) ----
+        # Structure: a MASS-BALANCE re-analysis on the corrected volume showed the
+        # weather buckets earn nothing (flat-mean MAE 1.23 vs buckets 1.49), and
+        # leave-one-out CV in analyze_multivar.py found EVERY predictor -- sun, water
+        # temp, FC carried, rain, dose, load class, alone AND combined -- WORSE than a
+        # flat mean. So a single flat number is the right shape. That has held up
+        # across 9 -> 50 day-pairs and is not in question.
+        #
+        # Level: 3.5 was the measured mean when n=9 (3.54, all July). At n=50 the same
+        # statistic is 2.24 (median 1.91, sd 1.49), so 3.5 had drifted into a -1.26
+        # ppm/day bias -- it over-stated demand every single day, which is why
+        # next-noon FC was persistently UNDER-predicted. Now 2.24.
+        # This is a RE-FIT OF THE SAME FLAT MEAN ON 5x THE DATA, not a new model:
+        # no new predictor, no new structure. That distinction is what keeps it clear
+        # of the standing "stop building loss models on <20 points" rule.
+        #
+        # Do NOT re-tune this off a recent window. Checked 2026-08-29: the last 9
+        # pairs mean 1.48 vs 2.40 prior looks significant (p=0.039) but that window
+        # was picked AFTER seeing it was low -- across all 42 overlapping 9-pair
+        # windows the means run 1.28-3.54, so one at p~0.04 is exactly what chance
+        # gives. Block means bounce with no trend. Re-fit only on the FULL series.
+        #
+        # Per-load-class fitting was tried and FAILED (2026-08-12/13) -- classes
+        # overlap heavily and lose to the flat mean under CV. Do not retry it on
+        # this n. The three thresholds above are kept so the buckets could be
+        # re-differentiated later, but are currently inert.
+        "l24_rain": 2.24,
+        "l24_partly": 2.24,
+        "l24_sunny": 2.24,
+        "l24_hot_sunny": 2.24,
     },
 }
 
