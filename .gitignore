@@ -17,3 +17,4 @@ photos/IMG_*.mp4
 # iCloud dump of raw concert originals (~100MB). The web-ready, re-encoded copies
 # live in concert/ and ARE committed; these camera originals stay local only.
 icloud/
+rows.json
