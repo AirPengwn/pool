@@ -1,0 +1,4 @@
+# Shell scripts must keep LF endings: a CRLF hook fails on Git Bash with
+# ": command not found". Applies to tools/pre-commit in particular.
+*.sh text eol=lf
+tools/pre-commit text eol=lf
