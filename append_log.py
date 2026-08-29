@@ -61,11 +61,38 @@ COLS = {
     "weather": 20, "photo": 21, "notes": 22, "load": 23,
 }
 # "load" (added 2026-07-19): what the pool actually experienced SINCE THE PREVIOUS
-# TEST -- i.e. the window whose FC drop this row measures. The mass-balance analysis
-# (analyze_loss.py) showed episodic organic load, not weather, drives loss variance
-# (quiet 3.07 +/- 0.61 vs dog 6.9 / party 4.0 / post-storm 3.8 / smoke 1.8), so this
-# is the field most likely to improve prediction. Vocabulary: quiet, swimmers,
-# party, dog, storm, smoke (combine with "+", e.g. "swimmers+dog").
+# TEST -- i.e. the window whose FC drop this row measures. Format:
+#   canonical[+canonical]; optional human qualifier
+# Vocabulary (POOL.md is the source of truth -- check it before inventing a tag):
+#   quiet, swimmers, party, dog, storm, smoke, millipedes, caterpillars, leaves,
+#   earthworms, pillbugs, carcass
+# NOTE (2026-08-29): an earlier version of this comment claimed load class is "the
+# field most likely to improve prediction". That was TESTED AND REJECTED on
+# 2026-08-12/13 -- classes overlap heavily and lose to a flat mean under
+# leave-one-out CV (analyze_multivar.py). Keep logging it as a factual record of
+# what arrived; do NOT fit L24 per class.
+
+
+def check_keys(rowdict, where=""):
+    """Reject unknown keys instead of silently dropping them.
+
+    Added 2026-08-29 after a real miss: a row was written with "water_level"
+    instead of "water_level_cm", so the water level was silently discarded and
+    the cell landed empty. write_row() iterates over COLS and pulls from the
+    dict, so anything misspelled just vanishes with no error. A dropped level
+    also corrupts the NEXT day's mass balance, because analyze_loss.py carries
+    the last known level forward. Fail loudly instead.
+    """
+    unknown = sorted(set(rowdict) - set(COLS))
+    if unknown:
+        import difflib
+        hints = []
+        for k in unknown:
+            m = difflib.get_close_matches(k, COLS, n=1)
+            hints.append(f"{k!r}" + (f" (did you mean {m[0]!r}?)" if m else ""))
+        msg = f"unknown field(s){where}: " + ", ".join(hints)
+        msg += "\nvalid fields: " + ", ".join(COLS)
+        sys.exit(msg)
 
 
 def get_styles(ws, template_row):
@@ -78,6 +105,7 @@ def get_styles(ws, template_row):
 
 
 def write_row(ws, styles, rowdict):
+    check_keys(rowdict)
     r = ws.max_row + 1
     for key, col in COLS.items():
         val = rowdict.get(key, None)
