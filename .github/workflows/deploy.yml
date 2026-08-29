@@ -21,6 +21,14 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
+
+      # Gate the deploy on the log's invariants. The local pre-commit hook
+      # (tools/pre-commit) runs this too, but hooks live outside the repo and
+      # can be bypassed with --no-verify, so this is the copy that cannot be
+      # skipped: a log that fails a check never reaches the site.
+      - name: Check log invariants
+        run: python check_log.py
+
       - run: python build_site.py
 
       # Publishes _site/ to the gh-pages branch via a plain git push (no

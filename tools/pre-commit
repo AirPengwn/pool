@@ -1,0 +1,24 @@
+#!/bin/sh
+# Pool log pre-commit hook -- refuse to commit a log that violates its invariants.
+#
+# Install:  python tools/install_hooks.py
+#
+# Why: three silent-write failures surfaced on 2026-08-29 (POOL.md edits that
+# no-opped, a water level dropped by a misspelled key, photo cells naming files
+# that do not exist). None of them announced itself; each was found only by
+# reading the data back. This runs that read-back automatically, at the last
+# moment before bad data becomes history.
+#
+# Bypass with `git commit --no-verify` only if you know exactly why. The same
+# check runs in the deploy workflow, so a bypass here fails the deploy instead.
+
+if git diff --cached --name-only | grep -qE '^(Pool_Log\.xlsx|photos/|check_log\.py)'; then
+    echo "pre-commit: checking log invariants..."
+    if ! python check_log.py; then
+        echo ""
+        echo "pre-commit: BLOCKED -- Pool_Log.xlsx violates an invariant (see above)."
+        echo "            Fix the data, or re-run with --no-verify if intentional."
+        exit 1
+    fi
+fi
+exit 0

@@ -255,6 +255,23 @@ John wants this project turned into a public dashboard site, hosted on GitHub Pa
 
 ## Changelog (append notable standing-rule changes here)
 
+## Silent-failure defences (added 2026-08-29 — READ BEFORE WRITING ANYTHING)
+
+Three separate silent-write failures surfaced in a single session. None announced itself; each was found only by reading the data back afterwards.
+
+1. **POOL.md edits via `str.replace()` whose anchor didn't match byte-for-byte** (em-dashes, emoji). The script printed "updated" and changed nothing — four rules lost.
+2. **A log row written with `water_level` instead of `water_level_cm`.** `append_log.py` iterated its known columns and pulled from the dict, so the misspelled key was discarded and the cell landed empty. Worse, an empty level **silently corrupts the NEXT day's mass balance**, because `analyze_loss.py` carries the last known level forward.
+3. **Photo cells holding a range shorthand** (`2026-06-27_1-3.jpg`) that names no real file. It renders as plain text in the log table, so nothing visibly broke; it survived two months.
+
+The common thread is **not** carelessness — it is that **nothing ever read the data back**. Hence:
+
+- **🔴 A SUCCESS MESSAGE IS NOT EVIDENCE.** "Appended 1 row", "updated", exit 0 — none of these prove the intended change landed. **Verify the post-condition by reading the data back through a different path than the one that wrote it** (grep the file, re-open the workbook, query the rendered page). This is the single rule that would have caught all three.
+- **🔴 `check_log.py` is the read-back.** It asserts schema, calendar continuity, required fields, `Cum. Cl` as a running total, `FC loss` as the mass balance, photo referential integrity **in both directions**, and the `Load` vocabulary. Run it after every logging session. It is wired in twice: **`tools/pre-commit`** blocks a bad commit locally (install once per clone with `python tools/install_hooks.py`), and the **deploy workflow** runs it before `build_site.py`, so a log that fails an invariant never reaches the site. The hook is bypassable with `--no-verify`; CI is not.
+- **Never hand-compute a derived column — recompute it.** `FC loss` and `Cum. Cl` are derived. 8/28's loss was logged as 0.6 by hand when the mass balance says 0.48, and 31 of 50 rows had drifted between two different definitions. `check_log.py` now fails on any drift.
+- **Anchored text edits must assert the anchor matched** (`assert s.count(old)==1`) **and be grep-verified afterwards**, never trusted to the script's own output.
+- **Check a new `Load` tag against the vocabulary before writing it.** Five tags (`burn debris`, `frogs`, `insects`, `seeds`, singular `earthworm`) drifted in unnoticed because nothing validated them; the first four are now in the list and the singular was normalised.
+- **Prefer a checker to a promise.** When a mistake is found, the fix is an assertion that makes it impossible to repeat silently — not a resolution to be more careful. Verify the checker **catches the real defect** by injecting it, not just that it passes on clean data.
+
 - 2026-06-22: Project initialized for Claude Code. Migrated from chat-based upload/download workflow.
 - 2026-06-23: Noted environment (Windows — use `python`/`C:\Python314`, not `python3`). New FAS-DPD reagents expected Thu 6/25; CYA recheck held until then.
 - 2026-06-23: Added `weather.py` (Open-Meteo, no API key) — weather now pulled automatically at noon; user no longer needs to report sky conditions.
