@@ -142,14 +142,26 @@ def main():
                             f"have no TEST row: {missing[:8]}")
 
     # ---- 4. required fields on the day's first test ------------------------
+    # A reading may be DELIBERATELY withheld when it is provably wrong (2026-09-06:
+    # conservation of mass showed an FC that could not be true). That is different
+    # from a reading silently going missing, which is what this check exists to
+    # catch -- so the row must SAY SO, by carrying "FC WITHHELD" in its Notes.
+    # Declared withholdings are reported as warnings on every run rather than
+    # passing silently, so they stay visible instead of becoming invisible holes.
     for d, r in sorted(first_test.items()):
         if d < REQUIRED_FROM:
             continue
+        withheld = "FC WITHHELD" in str(g(r, 22) or "")
         for col, name in ((5, "FC"), (19, "water level"), (21, "photo"),
                           (23, "load"), (2, "time")):
             v = g(r, col)
             missing = (num(v) is None) if col in (5, 19) else not v
-            if missing:
+            if not missing:
+                continue
+            if col == 5 and withheld:
+                warn("required", f"row {r} {d}: FC deliberately withheld "
+                                 f"(declared in Notes) -- excluded from the loss series")
+            else:
                 err("required", f"row {r} {d}: first test of the day has no {name}")
 
     # ---- 5. derived: Cum. Cl is the running total --------------------------
