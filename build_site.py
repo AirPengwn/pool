@@ -14,6 +14,7 @@ Output (_site/, gitignored -- rebuilt fresh every run, never committed):
   log.html                full raw log table, generated directly
   photos.html             day-by-day photo gallery, generated directly
   photos/*.jpg            resized copies of photos/ (max 1600px, ~q82)
+  features/*              copied as-is: hero-feature photos (see HERO_FEATURE)
   Pool_Log.xlsx           copied as-is, for the download link
   Taylor_K2006_Testing_Guide.docx   copied as-is, for the download link
 
@@ -63,17 +64,26 @@ def load_rows():
     return tests, doses, all_rows
 
 
-# One-off hero features: on a given date the dashboard hero shows a looping video
-# with a caption instead of the usual small thumbnail. Keyed by the date of the
-# TEST it should accompany, so it appears only once that day's reading is logged
-# and retires by itself the next day. The video must already be a web-ready .mp4
-# in photos/ (same pipeline as the Photos-page videos).
+# One-off hero features: on a given date the dashboard hero shows a captioned
+# looping video OR a photo instead of the usual small thumbnail.
+#   "video": a web-ready .mp4 in photos/ (same pipeline as the Photos-page videos)
+#   "photo": an image in features/ -- NOT photos/, which is the pool record and is
+#            policed by check_log.py (every dated file there must belong to a row)
+# Shown when EITHER the viewer's own calendar date is the featured date (so it is
+# up all day, even before that day's reading is logged -- added 2026-09-16, when
+# the TEST row was held for canister photos) OR the latest logged TEST is on that
+# date (so it stays up until the next day's reading replaces it).
 HERO_FEATURE = {
     "2026-08-08": {
         "video": "2026-08-08_v1.mp4",
         "caption": "Happy 9th Birthday Finnegan!",
     },
+    "2026-09-16": {
+        "photo": "2026-09-16_mom.png",
+        "caption": "Happy heavenly 80th birthday, Mom!",
+    },
 }
+FEATURES_SRC = os.path.join(HERE, "features")
 
 
 def build_data_json(tests, doses, all_rows, photo_by_date):
@@ -116,8 +126,11 @@ def build_data_json(tests, doses, all_rows, photo_by_date):
             if r["type"] and "Fill" in str(r["type"]) and isinstance(r["fill_gal"], (int, float))
         ],
         # Only emitted when the LATEST test is on a featured date, so the hero
-        # reverts to the normal thumbnail automatically the following day.
+        # reverts to the normal thumbnail once the next day's reading is logged.
         "hero_feature": HERO_FEATURE.get(str(tests[-1]["date"])) if tests else None,
+        # All features by date; index.html also shows one whose date is the
+        # viewer's local today (see HERO_FEATURE).
+        "hero_features": HERO_FEATURE,
     }
     with open(os.path.join(OUT, "data.json"), "w") as fh:
         json.dump(data, fh, indent=2, default=str)
@@ -655,6 +668,12 @@ def main():
     index_html = index_html.replace('src="theme.js"', f'src="theme.js?v={build_version}"')
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as fh:
         fh.write(index_html)
+
+    if os.path.isdir(FEATURES_SRC):
+        shutil.copytree(FEATURES_SRC, os.path.join(OUT, "features"))
+    for day, feat in HERO_FEATURE.items():
+        if "photo" in feat and not os.path.exists(os.path.join(FEATURES_SRC, feat["photo"])):
+            raise SystemExit(f"HERO_FEATURE {day}: features/{feat['photo']} does not exist")
 
     by_date, videos_by_date = scan_and_resize_photos()
     build_data_json(tests, doses, all_rows, by_date)
