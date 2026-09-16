@@ -75,8 +75,15 @@ a:hover { text-decoration: underline; }
   padding: 22px 40px; background: var(--surface); border-bottom: 2px solid var(--teal);
 }
 .masthead .wordmark { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 28px; color: var(--text-primary); }
-.masthead nav { display: flex; gap: 28px; font-size: 16px; }
-.masthead nav a { color: var(--text-secondary); font-weight: 500; }
+.masthead nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 28px; font-size: 16px; }
+.masthead nav a { color: var(--text-secondary); font-weight: 500; white-space: nowrap; }
+/* Phones: the nav used to be a single non-wrapping row inside 40px side padding,
+   so at ~375px it overflowed and (being centred) was clipped at BOTH edges. */
+@media (max-width: 600px) {
+  .masthead { padding: 18px 16px; gap: 10px; }
+  .masthead .wordmark { font-size: 24px; text-align: center; line-height: 1.25; }
+  .masthead nav { gap: 2px 18px; font-size: 15px; }
+}
 .masthead nav a.active { color: var(--teal); }
 .theme-toggle {
   display: flex; align-items: center; justify-content: center;
