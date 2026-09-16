@@ -56,9 +56,27 @@ CONFIG = {
     # CC level at/above which to raise a flag
     "cc_flag": 0.5,
 
-    # Round dose to nearest this many gallons. Half-gallon, not quarter —
-    # a quarter gallon is impractical to judge by eye in an opaque jug.
-    "dose_round": 0.5,
+    # Round dose to nearest this many gallons. WHOLE GALLONS since 2026-09-16
+    # (John: "i'd rather do full bottles if possible, it's easier as long as we
+    # are still safe"). A whole gallon is ~3.8 ppm, so nearest-whole rounding
+    # lands next noon within ~1.9 of aim -- well inside floor..ceiling.
+    # choose_dose() enforces the "still safe" part and falls back to half
+    # gallons (dose_round_fallback) only when no whole-gallon amount is safe.
+    # Never quarter gallons -- impractical to judge by eye in an opaque jug.
+    "dose_round": 1.0,
+    "dose_round_fallback": 0.5,
+
+    # Safety limits for the pourable-dose choice (choose_dose):
+    #   safe_swim_ceiling -- FC right after pouring must not exceed this. Matches
+    #     SAFE_SWIM_CEILING in site_src/index.html / build_site.py (POOL.md: FC
+    #     into the high teens is safe and swimmable at this CYA).
+    #   l24_bad_day -- the next-noon check uses THIS loss, not the mean l24, so a
+    #     skipped or rounded-down dose still clears the floor on a bad day.
+    #     4.5 = season p95 of the mass-balance loss (n=74, 6/25-9/15; mean 2.25,
+    #     p90 4.17, max 6.9 on 7/10). A worse day than this is caught by the
+    #     next noon test, as always.
+    "safe_swim_ceiling": 19.0,
+    "l24_bad_day": 4.5,
 
     # ---- Evening-dose 24h loss model (ppm) ----
     # Calibrated 2026-07-01 from fresh-reagent EVENING-dose data (6/25–7/1);
@@ -115,6 +133,32 @@ def round_to(x, step):
     return round(x / step) * step
 
 
+def choose_dose(fc_now, raw, cfg):
+    """Turn the raw dose into a pourable one, preferring whole gallons.
+
+    A candidate is SAFE when FC right after pouring stays at/under
+    safe_swim_ceiling AND next noon stays at/above the floor even on a bad day
+    (l24_bad_day). Tries the nearest whole gallon, then one less, then one more;
+    if none is safe, falls back to half-gallon rounding and says why.
+    Returns (dose_gal, note_or_None).
+    """
+    floor, _ = band_for_cya(cfg["cya_current"], cfg)
+    ppm, step = cfg["ppm_per_gallon"], cfg["dose_round"]
+
+    def safe(d):
+        after = fc_now + d * ppm
+        return after <= cfg["safe_swim_ceiling"] and after - cfg["l24_bad_day"] >= floor
+
+    whole = round_to(raw, step)
+    for d in (whole, whole - step, whole + step):
+        if d >= 0 and safe(d):
+            return d, None
+    half = round_to(raw, cfg["dose_round_fallback"])
+    return half, (f"no whole-gallon dose is safe (ceiling {cfg['safe_swim_ceiling']}, "
+                  f"floor {floor} on a {cfg['l24_bad_day']} ppm day) -- "
+                  f"fell back to {cfg['dose_round_fallback']}-gal rounding")
+
+
 def evening_l24(sun_hrs, water_temp, cfg):
     """Estimated 24h FC loss (ppm) for an EVENING dose, from the dose-day's
     full-day sunshine hours and water temp. See CONFIG['evening_l24']."""
@@ -143,10 +187,17 @@ def evening_plan(fc_now, sun_hrs, water_temp, cfg, dose_override=None):
     l24 = evening_l24(sun_hrs, water_temp, cfg)
     ppm = cfg["ppm_per_gallon"]
     raw = max(0.0, (aim + l24 - fc_now) / ppm)
-    dose = dose_override if dose_override is not None else round_to(raw, cfg["dose_round"])
+    note = None
+    if dose_override is not None:
+        dose = dose_override
+    else:
+        dose, note = choose_dose(fc_now, raw, cfg)
     projected = fc_now + dose * ppm - l24
     return {"aim": aim, "l24": l24, "raw_gal": raw,
-            "dose": dose, "projected_next_noon": projected}
+            "dose": dose, "projected_next_noon": projected,
+            "fc_after": fc_now + dose * ppm,
+            "bad_day_next_noon": fc_now + dose * ppm - cfg["l24_bad_day"],
+            "note": note}
 
 
 def calc(fc, cc, weather, cya, cfg):
@@ -207,9 +258,21 @@ def main():
         if args.dose is not None:
             print(f"Dose (override): {plan['dose']:.2f} gal")
         else:
-            print(f"Recommended dose: {plan['dose']:.2f} gal (raw {plan['raw_gal']:.2f})")
-        print(f"Projected NEXT-NOON FC: ~{plan['projected_next_noon']:.1f}"
-              "  -> log as 'Pred next-noon FC' on tonight's DOSE row")
+            print(f"Recommended dose: {plan['dose']:.2f} gal (raw {plan['raw_gal']:.2f}; "
+                  f"whole gallons when safe)")
+            if plan["note"]:
+                print(f"  NOTE: {plan['note']}")
+        floor, _ = band_for_cya(CONFIG["cya_current"], CONFIG)
+        print(f"FC right after pour: ~{plan['fc_after']:.1f}  (ceiling {CONFIG['safe_swim_ceiling']:g})")
+        print(f"Next noon on a bad day ({CONFIG['l24_bad_day']:g} ppm loss): "
+              f"~{plan['bad_day_next_noon']:.1f}  (floor {floor})")
+        if plan["dose"] == 0:
+            print(f"Projected NEXT-NOON FC: ~{plan['projected_next_noon']:.1f}"
+                  "  -> NO DOSE tonight: no DOSE row; record this projection in the "
+                  "TEST row's notes so tomorrow can score it")
+        else:
+            print(f"Projected NEXT-NOON FC: ~{plan['projected_next_noon']:.1f}"
+                  "  -> log as 'Pred next-noon FC' on tonight's DOSE row")
     else:
         print(calc(args.fc, args.cc, args.weather, args.cya, CONFIG))
 
