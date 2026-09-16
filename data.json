@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-09-15T23:18:22",
+    "generated_at": "2026-09-16T17:08:53",
     "pool_gallons": 31400,
     "cya_current": 148,
     "fc_floor": 10,
@@ -1743,5 +1743,15 @@
       "gal": 158
     }
   ],
-  "hero_feature": null
+  "hero_feature": null,
+  "hero_features": {
+    "2026-08-08": {
+      "video": "2026-08-08_v1.mp4",
+      "caption": "Happy 9th Birthday Finnegan!"
+    },
+    "2026-09-16": {
+      "photo": "2026-09-16_mom.png",
+      "caption": "Happy heavenly 80th birthday, Mom!"
+    }
+  }
 }
