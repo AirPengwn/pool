@@ -379,7 +379,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
       <div class="stat-value big serif" style="color:var(--teal);">${latest.fc.toFixed(1)}</div>
     </div>
     <span class="pill ${fcStatus.cls}">${fcStatus.label}</span>
-    ${stat('Combined chlorine', latest.cc.toFixed(1))}
+    ${stat('Combined chlorine', latest.cc != null ? latest.cc.toFixed(1) : '—')}
     ${latest.water_temp != null ? stat('Water temp', `${latest.water_temp.toFixed(1)}°F`) : ''}
     ${latest.sun_hrs != null ? stat('Sun that day', `${latest.sun_hrs.toFixed(1)} hrs`) : ''}
   `;
