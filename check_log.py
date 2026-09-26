@@ -62,6 +62,9 @@ VOCAB = {"quiet", "swimmers", "party", "dog", "storm", "smoke", "millipedes",
 # historical gap so the checker guards TODAY without re-litigating June.
 REQUIRED_FROM = date(2026, 8, 1)
 
+# Type that declares a deliberately untested day (see calendar continuity below).
+NO_TEST_TYPE = "EVENT - No test"
+
 ERRORS, WARNS = [], []
 
 
@@ -108,7 +111,7 @@ def main():
     g = lambda r, c: ws.cell(r, c).value
 
     # ---- 2. row basics -----------------------------------------------------
-    tests, doses = [], []
+    tests, doses, no_test = [], [], {}
     for r in rows:
         d, t = as_date(g(r, 1)), str(g(r, 3) or "")
         if d is None:
@@ -116,6 +119,8 @@ def main():
             continue
         if not t:
             err("types", f"row {r}: no Type")
+        if t == NO_TEST_TYPE:
+            no_test[d] = r
         if t == "TEST":
             tests.append((r, d))
         elif t == "DOSE":
@@ -132,14 +137,25 @@ def main():
     first_test = {d: min(rs) for d, rs in byday.items()}
 
     # ---- 3. calendar continuity -------------------------------------------
+    # A day may be DELIBERATELY skipped -- John does not test in a storm, or when
+    # he is away (first use 2026-09-26, a nor'easter). That is different from a
+    # day going silently missing, which is what this check exists to catch, so
+    # the skip must SAY SO: a row of type NO_TEST_TYPE on that date, with the
+    # reason in Notes. Declared skips are reported as warnings on every run, so
+    # they stay visible instead of becoming invisible holes.
     if byday:
         lo, hi = min(byday), max(byday)
-        missing = [(lo + timedelta(days=i)).isoformat()
-                   for i in range((hi - lo).days + 1)
+        missing = [lo + timedelta(days=i) for i in range((hi - lo).days + 1)
                    if (lo + timedelta(days=i)) not in byday]
-        if missing:
-            err("calendar", f"{len(missing)} day(s) between {lo} and {hi} "
-                            f"have no TEST row: {missing[:8]}")
+        declared = [d for d in missing if d in no_test]
+        silent = [d for d in missing if d not in no_test]
+        if silent:
+            err("calendar", f"{len(silent)} day(s) between {lo} and {hi} have no "
+                            f"TEST row and no {NO_TEST_TYPE!r} row: "
+                            f"{[d.isoformat() for d in silent][:8]}")
+        for d in declared:
+            warn("calendar", f"row {no_test[d]} {d}: no test that day, declared "
+                             f"({NO_TEST_TYPE}) -- excluded from the loss series")
 
     # ---- 4. required fields on the day's first test ------------------------
     # A reading may be DELIBERATELY withheld when it is provably wrong (2026-09-06:
