@@ -340,9 +340,8 @@ def build_photos(tests, by_date, videos_by_date, build_version):
     # 9/16 birthday photo would have been reachable only by typing its URL.
     # Driven by HERO_FEATURE, so a future feature lands here automatically.
     def moments_html():
-        cards = []
-        for day in sorted(HERO_FEATURE, reverse=True):
-            f = HERO_FEATURE[day]
+        items = []  # (iso date, caption, media html, link or None)
+        for day, f in HERO_FEATURE.items():
             if f.get("photo"):
                 media = (f'<img src="features/{f["photo"]}" loading="lazy" '
                          f'alt="{esc(f["caption"])}">')
@@ -350,12 +349,28 @@ def build_photos(tests, by_date, videos_by_date, build_version):
                 media = (f'<video controls preload="metadata" playsinline>'
                          f'<source src="photos/{f["video"]}" type="video/mp4">'
                          f'Your browser can\'t play this video.</video>')
+            items.append((day, f["caption"], media, None))
+        # The two concert nights each get one photo here, linking to their gallery.
+        for c in CONCERTS:
+            if not c.get("moment_image"):
+                continue
+            items.append((
+                c["date"], c["moment_caption"],
+                f'<img src="{c["web"]}/{c["moment_image"]}" loading="lazy" '
+                f'alt="{esc(c["moment_caption"])}">',
+                c["page"]))
+
+        cards = []
+        for day, caption, media, link in sorted(items, reverse=True):
             d = date.fromisoformat(day)
-            cards.append(
-                f'<figure class="moment">{media}'
-                f'<figcaption><div class="moment-caption serif">{esc(f["caption"])}</div>'
-                f'<div class="moment-date">{d.strftime("%B")} {d.day}, {d.year}</div>'
-                f'</figcaption></figure>')
+            body = (f'{media}<figcaption>'
+                    f'<div class="moment-caption serif">{esc(caption)}</div>'
+                    f'<div class="moment-date">{d.strftime("%B")} {d.day}, {d.year}</div>'
+                    + (f'<div class="moment-link">See the night →</div>' if link else "")
+                    + '</figcaption>')
+            cards.append(f'<figure class="moment">'
+                         + (f'<a href="{link}">{body}</a>' if link else body)
+                         + '</figure>')
         if not cards:
             return ""
         return ('<section class="photo-day" id="moments"><h2>Moments</h2>'
@@ -446,6 +461,9 @@ CONCERTS = [
         "page": "concert.html", "dir": CONCERT_SRC, "web": "concert", "label": "Night 1",
         "heading": "Noah Kahan — July 8, 2026 · Fenway Park, Boston, MA",
         "title": "Noah Kahan — Night 1 (July 8, 2026)",
+        # Shown in the Photos page's Moments section, linking to this page.
+        "date": "2026-07-08", "moment_image": "IMG_8981.jpg",
+        "moment_caption": "Noah Kahan at Fenway · Night 1",
         "acts": [
             {"name": "Act 1 · Main Stage", "songs": ["American Cars", "Doors", "All My Love", "Deny Deny Deny", "Staying Still"]},
             {"name": "Act 2 · B-Stage", "songs": ["Haircut", "Downfall", "Mess"]},
@@ -467,6 +485,8 @@ CONCERTS = [
         "page": "concert2.html", "dir": CONCERT2_SRC, "web": "concert2", "label": "Night 2",
         "heading": "Noah Kahan — July 11, 2026 · Fenway Park, Boston, MA",
         "title": "Noah Kahan — Night 2 (July 11, 2026)",
+        "date": "2026-07-11", "moment_image": "IMG_9037.jpg",
+        "moment_caption": "Noah Kahan at Fenway · Night 2",
         "acts": [
             {"name": "Act 1 · Main Stage", "songs": ["American Cars", "Doors", "All My Love", "Deny Deny Deny", "Staying Still"]},
             {"name": "Act 2 · B-Stage", "songs": ["Haircut", "Downfall",
