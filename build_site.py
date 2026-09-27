@@ -334,7 +334,36 @@ def build_photos(tests, by_date, videos_by_date, build_version):
             tiles.append(stat_tile("Sun that day", f'{t["sun_hrs"]:.1f} hrs'))
         return f'<div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:12px;">{"".join(tiles)}</div>'
 
-    sections = []
+    # "Moments": every one-off hero feature, kept permanently. The dashboard hero
+    # retires a feature the day after (by design), and a feature PHOTO lives in
+    # features/, which nothing else links to -- so without this section Mom's
+    # 9/16 birthday photo would have been reachable only by typing its URL.
+    # Driven by HERO_FEATURE, so a future feature lands here automatically.
+    def moments_html():
+        cards = []
+        for day in sorted(HERO_FEATURE, reverse=True):
+            f = HERO_FEATURE[day]
+            if f.get("photo"):
+                media = (f'<img src="features/{f["photo"]}" loading="lazy" '
+                         f'alt="{esc(f["caption"])}">')
+            else:
+                media = (f'<video controls preload="metadata" playsinline>'
+                         f'<source src="photos/{f["video"]}" type="video/mp4">'
+                         f'Your browser can\'t play this video.</video>')
+            d = date.fromisoformat(day)
+            cards.append(
+                f'<figure class="moment">{media}'
+                f'<figcaption><div class="moment-caption serif">{esc(f["caption"])}</div>'
+                f'<div class="moment-date">{d.strftime("%B")} {d.day}, {d.year}</div>'
+                f'</figcaption></figure>')
+        if not cards:
+            return ""
+        return ('<section class="photo-day" id="moments"><h2>Moments</h2>'
+                '<p class="cap">Days the dashboard marked with something other than pool data. '
+                'Each one led the front page on its day; they live here for good.</p>'
+                f'<div class="moments">{"".join(cards)}</div></section>')
+
+    sections = [moments_html()]
     # Include days that have a video even if they have no photos.
     all_days = sorted(set(by_date) | set(videos_by_date), reverse=True)
     for day in all_days:

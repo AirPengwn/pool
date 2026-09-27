@@ -157,6 +157,16 @@ main.wide h1, main.full h1 { font-family: 'Fraunces', Georgia, serif; font-weigh
   box-shadow: var(--card-shadow);
 }
 .hero-feature-video { background: #000; }
+
+/* "Moments" on the Photos page: the permanent home for HERO_FEATURE items. */
+.moments { display: flex; flex-wrap: wrap; gap: 22px; justify-content: center; margin-top: 14px; }
+.moment { margin: 0; max-width: 320px; }
+.moment img, .moment video {
+  width: 100%; display: block; border-radius: var(--radius);
+  border: 0.5px solid var(--border); box-shadow: var(--card-shadow);
+}
+.moment-caption { font-size: 17px; color: var(--coral); text-align: center; margin-top: 10px; line-height: 1.3; }
+.moment-date { font-size: 13px; color: var(--text-muted); text-align: center; margin-top: 2px; }
 .hero-feature-photo { max-height: 340px; }
 @media (max-width: 480px) { .hero-feature-media { max-height: 220px; } .hero-feature-photo { max-height: 280px; } .hero-feature-caption { font-size: 19px; } }
 .stat-label { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
