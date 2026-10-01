@@ -65,7 +65,7 @@ COLS = {
 #   canonical[+canonical]; optional human qualifier
 # Vocabulary (POOL.md is the source of truth -- check it before inventing a tag):
 #   quiet, swimmers, party, dog, storm, smoke, millipedes, caterpillars, leaves,
-#   earthworms, pillbugs, carcass
+#   earthworms, pillbugs, carcass, snails
 # NOTE (2026-08-29): an earlier version of this comment claimed load class is "the
 # field most likely to improve prediction". That was TESTED AND REJECTED on
 # 2026-08-12/13 -- classes overlap heavily and lose to a flat mean under

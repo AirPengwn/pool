@@ -54,7 +54,7 @@ GOOD_FROM = date(2026, 6, 24)          # fresh FAS-DPD onwards
 # POOL.md is the source of truth -- keep the two in sync.
 VOCAB = {"quiet", "swimmers", "party", "dog", "storm", "smoke", "millipedes",
          "caterpillars", "leaves", "earthworms", "pillbugs", "carcass",
-         "burn debris", "frogs", "insects", "seeds"}
+         "burn debris", "frogs", "insects", "seeds", "snails"}
 
 # Fields are only MANDATORY from the date each became standard practice, and
 # only on the first (noon) test of a day -- a repeat test the same day does not
