@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-09-30T18:07:58",
+    "generated_at": "2026-10-01T16:37:29",
     "pool_gallons": 31400,
     "cya_current": 148,
     "fc_floor": 10,
@@ -1608,6 +1608,22 @@
       "rain_in": 0,
       "water_level_cm": 12,
       "thumb": "2026-09-30_1.jpg"
+    },
+    {
+      "date": "2026-10-01",
+      "time": "12:15",
+      "fc": 16.8,
+      "cc": 0.3,
+      "water_temp": 64,
+      "sun_hrs": 5,
+      "pred_error": null,
+      "fc_loss": 1.6,
+      "ph": null,
+      "ta": null,
+      "cya": null,
+      "rain_in": 0,
+      "water_level_cm": 12,
+      "thumb": "2026-10-01_1.jpg"
     }
   ],
   "doses": [
