@@ -146,7 +146,13 @@ def main():
     styles = get_styles(ws, ws.max_row)
 
     if args.json:
-        with open(args.json) as fh:
+        # encoding="utf-8" is REQUIRED, not cosmetic (fixed 2026-10-09). Without
+        # it Python uses the Windows locale encoding (cp1252) and every non-ASCII
+        # character in rows.json is silently mis-decoded: notes written with 🔴
+        # landed in the log as "ð\x9f\x94\xb4" mojibake, and nothing complained.
+        # A character cp1252 cannot map at all (e.g. the variation selector in
+        # 🕷️) raises UnicodeDecodeError instead -- which is how this was caught.
+        with open(args.json, encoding="utf-8") as fh:
             rows = json.load(fh)
         if isinstance(rows, dict):
             rows = [rows]
