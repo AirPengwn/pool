@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="theme.js?v=20261012215416"></script>
+<title>Season 2026 &mdash; Summer 2026 Pool Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
+<link rel="stylesheet" href="style.css?v=20261012215416">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+<header class="masthead">
+<a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
+<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
+<nav><a href="index.html">Dashboard</a><a href="log.html">Data</a><a href="photos.html">Photos</a><a href="season.html" class="active">Season</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
+</div>
+</header>
+<script>
+(function () {
+  var btn = document.getElementById('themeToggle');
+  function labelToggle() {
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    btn.innerHTML = window.THEME_ICONS[next === 'dark' ? 'moon' : 'sun'];
+    btn.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+  }
+  labelToggle();
+  btn.addEventListener('click', function () {
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('pool_theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    location.reload();
+  });
+})();
+</script>
+<main class="wide">
+<h1 style="margin-bottom:2px;">Season 2026</h1>
+<div class="cap" style="margin-bottom:18px;">Opened 18 June 2026 &middot; closed 12 October 2026</div>
+
+<div class="card">
+<img class="hero-feature-media hero-feature-photo" src="photos/2026-10-12_1.jpg"
+     alt="The pool under its winter cover" style="width:100%;max-width:100%;">
+<div class="cap" style="margin-top:8px;">Cover on at 5:35 PM, Monday 12 October 2026.</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:14px;">By the numbers</div>
+<div style="display:flex;flex-wrap:wrap;gap:26px 34px;"><div style="min-width:160px;"><div class="stat-label">Days tested</div><div class="stat-value big serif" style="color:var(--teal);">113</div><div class="cap" style="margin-top:2px;">of the 114 in the season</div></div><div style="min-width:160px;"><div class="stat-label">Titrations</div><div class="stat-value big serif" style="color:var(--teal);">119</div><div class="cap" style="margin-top:2px;">19 June 2026 to 10 October 2026</div></div><div style="min-width:160px;"><div class="stat-label">Chlorine used</div><div class="stat-value big serif" style="color:var(--teal);">68.0 gal</div><div class="cap" style="margin-top:2px;">12.5% liquid, no tablets</div></div><div style="min-width:160px;"><div class="stat-label">Median FC</div><div class="stat-value big serif" style="color:var(--teal);">15.0</div><div class="cap" style="margin-top:2px;">range 3.4 to 20.0, 110 readings</div></div><div style="min-width:160px;"><div class="stat-label">Median loss</div><div class="stat-value big serif" style="color:var(--teal);">1.90</div><div class="cap" style="margin-top:2px;">ppm per 24 h, over 101 days</div></div><div style="min-width:160px;"><div class="stat-label">Readings below floor</div><div class="stat-value big serif" style="color:var(--teal);">3</div><div class="cap" style="margin-top:2px;">of 110 (3%)</div></div><div style="min-width:160px;"><div class="stat-label">CC reading zero</div><div class="stat-value big serif" style="color:var(--teal);">30%</div><div class="cap" style="margin-top:2px;">of 106 tests; never above 0.8</div></div><div style="min-width:160px;"><div class="stat-label">Rain logged</div><div class="stat-value big serif" style="color:var(--teal);">16.5 in</div><div class="cap" style="margin-top:2px;">well-water top-ups 251 gal</div></div></div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:8px;">How it went</div>
+<p>The pool was tested on 113 of the 114 days it was open &mdash; 119 titrations in all,
+the extras being rechecks &mdash; and the single untested day was a declared nor'easter. Eight of
+those days carry no free-chlorine number: six in July while a reagent problem was being
+chased down, and two more where the reading was deliberately withheld rather than logged
+as fact. Everything below is computed from the 110 readings that remain.</p>
+<p>The pool held its band almost all season. Free chlorine sat at a median of
+15.0 ppm against a floor of 10 and an aim of 15, and fell below the floor on
+3 of 110 readings. Combined chlorine &mdash; the number that tells you something is
+actually going wrong &mdash; read zero on 30% of tests and never once got above 0.8.
+That is the season in two sentences: nothing ever went wrong, and this log exists to
+show why rather than to record rescues.</p>
+<p>It took 68.0 gallons of 12.5% liquid chlorine across 55 evening doses, plus 251 gallons
+of well water and whatever the 16.5 inches of rain contributed. No tablets all year, so
+no cyanuric acid was added to a pool already sitting near 150.</p>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:8px;">What the data actually settled</div>
+<p><strong>The pool is smaller than it looked.</strong> Measuring the real hopper geometry in
+mid-July cut the working volume from 34,400 gallons to about 31,400 &mdash; a 9% overestimate
+that had been quietly making every dose read weak on paper. A gallon of 12.5% is worth
+about 3.84 ppm here, not 3.5.</p>
+<p><strong>The reagent scare was settled by measurement, not argument.</strong> A near-empty DPD
+container reads <em>low</em>, never high. A paired old-against-new test on 30 September put the
+error at 3.2 ppm &mdash; 76 drops against 92 on the same water. That retired the container and
+invalidated four days of readings, which are flagged in the log rather than quietly
+deleted.</p>
+<p><strong>Daily chlorine loss is almost weather-independent here.</strong> Across 101
+mass-balanced days, sun hours explain under 1% of the variance in loss, and rainfall about
+the same. Water temperature is the only environmental variable with any signal at all, and
+it is weak. Load class &mdash; swimmers, storms, insect waves &mdash; was tested properly under
+cross-validation and <em>lost to a flat average</em>. The honest model for this pool is a
+constant.</p>
+<p><strong>By autumn the signal fell below the noise.</strong> With demand near zero in cold water,
+the day-to-day loss became smaller than the test's own between-reading scatter, which is
+routinely three drops. Several late-season puzzles dissolved once that was accepted, and
+5 days booked a physically impossible negative loss &mdash; which is simply what measurement
+error looks like once the real signal is gone.</p>
+<p><strong>The pool mixes.</strong> A two-ended test on 4 October read the same at both ends of the
+open water. The only dead zone ever found is the pocket beside the stairs.</p>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:8px;">The forecast, scored honestly</div>
+<p>Every evening dose carried a prediction of the next day's noon reading, and every one was
+scored against what actually turned up. Over 40 scored predictions the average miss was
+1.36 ppm, with a signed bias of +1.05 &mdash; the model ran slightly pessimistic, over-estimating
+how much chlorine the pool would lose overnight. Both numbers are on the dashboard,
+including the days it got it wrong.</p>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:8px;">Closing, and what spring will bring</div>
+<p>The pool went under the cover on 12 October 2026 at about 21.4 ppm of free chlorine, zero
+combined, and essentially full &mdash; an inch and a half of rain two days before closing
+refilled it after a dry autumn. Nothing in the winter kit adds chlorine, so that final
+charge is the entire winter sanitiser budget.</p>
+<p>Three things are already known about the opening. The first combined-chlorine reading
+will probably come back at 1.0 or higher, and it will be the winter tablets rather than
+chloramine &mdash; potassium monopersulfate reads as CC on a FAS-DPD test. There will be foam at
+the returns from the quat algaecide, which is harmless. And the season should start with a
+fresh FAS titrant: the 2026 bottle had been in service since June, and its age is the one
+untested explanation left over from the autumn drift work.</p>
+</div>
+
+</main>
+</body>
+</html>

@@ -1,12 +1,15 @@
 {
   "meta": {
-    "generated_at": "2026-10-12T21:43:21",
+    "generated_at": "2026-10-12T21:55:26",
     "pool_gallons": 31400,
     "cya_current": 148,
     "fc_floor": 10,
     "fc_aim": 15,
     "season_open": "2026-06-18",
-    "season_total_dose_gal": 68.0
+    "season_total_dose_gal": 68.0,
+    "days_tested": 113,
+    "titrations": 119,
+    "days_with_fc": 105
   },
   "tests": [
     {
@@ -2177,5 +2180,11 @@
       "photo": "2026-09-16_mom.png",
       "caption": "Happy heavenly 80th birthday, Mom!"
     }
+  },
+  "season_closed": {
+    "date": "2026-10-12",
+    "headline": "Closed!",
+    "photo": "photos/2026-10-12_1.jpg",
+    "caption": "Cover on at 5:35 PM, Monday 12 October 2026."
   }
 }
