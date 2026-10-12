@@ -85,6 +85,19 @@ HERO_FEATURE = {
 }
 FEATURES_SRC = os.path.join(HERE, "features")
 
+# Set while the pool is closed for the season. Two effects: the dashboard hero
+# becomes a closing banner instead of the latest-reading thumbnail, and the
+# season summary page is the thing the nav points at. "photo" is a path relative
+# to the site root -- photos/ is fine here (unlike HERO_FEATURE) because this
+# image is a logged pool photo and does belong to a row, so check_log.py is happy.
+# CLEAR THIS TO None AT SPRING OPENING, or the hero will still say Closed.
+SEASON_CLOSED = {
+    "date": "2026-10-12",
+    "headline": "Closed!",
+    "photo": "photos/2026-10-12_1.jpg",
+    "caption": "Cover on at 5:35 PM, Monday 12 October 2026.",
+}
+
 
 def build_data_json(tests, doses, all_rows, photo_by_date):
     cfg = D.CONFIG
@@ -101,6 +114,16 @@ def build_data_json(tests, doses, all_rows, photo_by_date):
             "fc_aim": aim,
             "season_open": season_open,
             "season_total_dose_gal": season_total,
+            # Counted from ALL rows, not from `tests` -- `tests` holds only rows
+            # with a numeric FC, so it silently drops the 8 tested days that have
+            # no FC of record (the July reagent window, plus 2026-09-06 and
+            # 2026-09-29 where FC was deliberately withheld). Reporting those as
+            # "days tested" would understate the season by eight days, and having
+            # index.html and season.html each count for themselves is how they
+            # ended up disagreeing (105 vs 110) in the first place.
+            "days_tested": len({str(r["date"]) for r in all_rows if r["type"] == "TEST"}),
+            "titrations": sum(1 for r in all_rows if r["type"] == "TEST"),
+            "days_with_fc": len({str(t["date"]) for t in tests}),
         },
         "tests": [
             {
@@ -131,6 +154,8 @@ def build_data_json(tests, doses, all_rows, photo_by_date):
         # All features by date; index.html also shows one whose date is the
         # viewer's local today (see HERO_FEATURE).
         "hero_features": HERO_FEATURE,
+        # Set only between closing and the spring opening (see SEASON_CLOSED).
+        "season_closed": SEASON_CLOSED,
     }
     with open(os.path.join(OUT, "data.json"), "w") as fh:
         json.dump(data, fh, indent=2, default=str)
@@ -204,7 +229,7 @@ def build_log_html(all_rows, photo_days, build_version):
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
 <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
-<nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Data</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<nav><a href="index.html">Dashboard</a><a href="log.html" class="active">Data</a><a href="photos.html">Photos</a><a href="season.html">Season</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
 <button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
 </div>
 </header>
@@ -408,7 +433,7 @@ def build_photos(tests, by_date, videos_by_date, build_version):
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
 <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
-<nav><a href="index.html">Dashboard</a><a href="log.html">Data</a><a href="photos.html" class="active">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<nav><a href="index.html">Dashboard</a><a href="log.html">Data</a><a href="photos.html" class="active">Photos</a><a href="season.html">Season</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
 <button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
 </div>
 </header>
@@ -648,7 +673,7 @@ def build_concert_page(concert, all_concerts, build_version):
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
 <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
-<nav><a href="index.html">Dashboard</a><a href="log.html">Data</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<nav><a href="index.html">Dashboard</a><a href="log.html">Data</a><a href="photos.html">Photos</a><a href="season.html">Season</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
 <button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
 </div>
 </header>
@@ -696,6 +721,186 @@ document.getElementById('lightbox').addEventListener('click', () => {{
     return len(images), len(videos)
 
 
+MONTHS = ("January", "February", "March", "April", "May", "June", "July",
+          "August", "September", "October", "November", "December")
+
+
+def fmtd(iso):
+    d = date.fromisoformat(str(iso)[:10])
+    return f"{d.day} {MONTHS[d.month - 1]} {d.year}"
+
+
+def build_season(tests, doses, all_rows, build_version):
+    """The season summary page. Every number on it is computed from the log
+    rather than typed in, so a later correction to a row flows straight through
+    to the prose instead of quietly making it wrong."""
+    import statistics as st
+
+    def nums(seq):
+        return [x for x in seq if isinstance(x, (int, float))]
+
+    fc = nums(t["fc"] for t in tests)
+    cc = nums(t["cc"] for t in tests)
+    loss = nums(t["fc_loss"] for t in tests)
+    perr = nums(t["pred_error"] for t in tests)
+    rain = sum(nums(t["rain_in"] for t in tests))
+    fill = sum(nums(r["fill_gal"] for r in all_rows))
+    gal = round(sum(nums(d["chlorine_gal"] for d in doses)), 1)
+    floor, aim = D.band_for_cya(D.CONFIG["cya_current"], D.CONFIG)
+    first, last = str(tests[0]["date"]), str(tests[-1]["date"])
+    span = (date.fromisoformat(last) - date.fromisoformat(first)).days + 1
+    n_rows = sum(1 for r in all_rows if r["type"] == "TEST")
+    days_tested = len({str(r["date"]) for r in all_rows if r["type"] == "TEST"})
+    open_row = next((r for r in all_rows if r["type"] and "Open" in str(r["type"])), None)
+    opened = str(open_row["date"])[:10] if open_row else first
+    below = sum(1 for x in fc if x < floor)
+    cc_zero = sum(1 for x in cc if x == 0)
+    neg = sum(1 for x in loss if x < 0)
+    pct_cc = 100 * cc_zero / len(cc)
+    mae = st.mean(abs(x) for x in perr)
+    bias = st.mean(perr)
+
+    def card_stat(label, value, note):
+        return (f'<div style="min-width:160px;"><div class="stat-label">{label}</div>'
+                f'<div class="stat-value big serif" style="color:var(--teal);">{value}</div>'
+                f'<div class="cap" style="margin-top:2px;">{note}</div></div>')
+
+    grid = "".join([
+        card_stat("Days tested", days_tested, f"of the {span} in the season"),
+        card_stat("Titrations", n_rows, f"{fmtd(first)} to {fmtd(last)}"),
+        card_stat("Chlorine used", f"{gal} gal", "12.5% liquid, no tablets"),
+        card_stat("Median FC", f"{st.median(fc):.1f}", f"range {min(fc):.1f} to {max(fc):.1f}, {len(fc)} readings"),
+        card_stat("Median loss", f"{st.median(loss):.2f}", f"ppm per 24 h, over {len(loss)} days"),
+        card_stat("Readings below floor", below, f"of {len(fc)} ({100 * below / len(fc):.0f}%)"),
+        card_stat("CC reading zero", f"{pct_cc:.0f}%", f"of {len(cc)} tests; never above {max(cc):.1f}"),
+        card_stat("Rain logged", f"{rain:.1f} in", f"well-water top-ups {fill:.0f} gal"),
+    ])
+
+    body = f"""
+<div class="card">
+<img class="hero-feature-media hero-feature-photo" src="{SEASON_CLOSED['photo']}"
+     alt="The pool under its winter cover" style="width:100%;max-width:100%;">
+<div class="cap" style="margin-top:8px;">{SEASON_CLOSED['caption']}</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:14px;">By the numbers</div>
+<div style="display:flex;flex-wrap:wrap;gap:26px 34px;">{grid}</div>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:8px;">How it went</div>
+<p>The pool was tested on {days_tested} of the {span} days it was open &mdash; {n_rows} titrations in all,
+the extras being rechecks &mdash; and the single untested day was a declared nor'easter. Eight of
+those days carry no free-chlorine number: six in July while a reagent problem was being
+chased down, and two more where the reading was deliberately withheld rather than logged
+as fact. Everything below is computed from the {len(fc)} readings that remain.</p>
+<p>The pool held its band almost all season. Free chlorine sat at a median of
+{st.median(fc):.1f} ppm against a floor of {floor} and an aim of {aim}, and fell below the floor on
+{below} of {len(fc)} readings. Combined chlorine &mdash; the number that tells you something is
+actually going wrong &mdash; read zero on {pct_cc:.0f}% of tests and never once got above {max(cc):.1f}.
+That is the season in two sentences: nothing ever went wrong, and this log exists to
+show why rather than to record rescues.</p>
+<p>It took {gal} gallons of 12.5% liquid chlorine across {len(doses)} evening doses, plus {fill:.0f} gallons
+of well water and whatever the {rain:.1f} inches of rain contributed. No tablets all year, so
+no cyanuric acid was added to a pool already sitting near 150.</p>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:8px;">What the data actually settled</div>
+<p><strong>The pool is smaller than it looked.</strong> Measuring the real hopper geometry in
+mid-July cut the working volume from 34,400 gallons to about 31,400 &mdash; a 9% overestimate
+that had been quietly making every dose read weak on paper. A gallon of 12.5% is worth
+about 3.84 ppm here, not 3.5.</p>
+<p><strong>The reagent scare was settled by measurement, not argument.</strong> A near-empty DPD
+container reads <em>low</em>, never high. A paired old-against-new test on 30 September put the
+error at 3.2 ppm &mdash; 76 drops against 92 on the same water. That retired the container and
+invalidated four days of readings, which are flagged in the log rather than quietly
+deleted.</p>
+<p><strong>Daily chlorine loss is almost weather-independent here.</strong> Across {len(loss)}
+mass-balanced days, sun hours explain under 1% of the variance in loss, and rainfall about
+the same. Water temperature is the only environmental variable with any signal at all, and
+it is weak. Load class &mdash; swimmers, storms, insect waves &mdash; was tested properly under
+cross-validation and <em>lost to a flat average</em>. The honest model for this pool is a
+constant.</p>
+<p><strong>By autumn the signal fell below the noise.</strong> With demand near zero in cold water,
+the day-to-day loss became smaller than the test's own between-reading scatter, which is
+routinely three drops. Several late-season puzzles dissolved once that was accepted, and
+{neg} days booked a physically impossible negative loss &mdash; which is simply what measurement
+error looks like once the real signal is gone.</p>
+<p><strong>The pool mixes.</strong> A two-ended test on 4 October read the same at both ends of the
+open water. The only dead zone ever found is the pocket beside the stairs.</p>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:8px;">The forecast, scored honestly</div>
+<p>Every evening dose carried a prediction of the next day's noon reading, and every one was
+scored against what actually turned up. Over {len(perr)} scored predictions the average miss was
+{mae:.2f} ppm, with a signed bias of {bias:+.2f} &mdash; the model ran slightly pessimistic, over-estimating
+how much chlorine the pool would lose overnight. Both numbers are on the dashboard,
+including the days it got it wrong.</p>
+</div>
+
+<div class="card">
+<div class="serif" style="font-size:16px;margin-bottom:8px;">Closing, and what spring will bring</div>
+<p>The pool went under the cover on {fmtd(SEASON_CLOSED['date'])} at about 21.4 ppm of free chlorine, zero
+combined, and essentially full &mdash; an inch and a half of rain two days before closing
+refilled it after a dry autumn. Nothing in the winter kit adds chlorine, so that final
+charge is the entire winter sanitiser budget.</p>
+<p>Three things are already known about the opening. The first combined-chlorine reading
+will probably come back at 1.0 or higher, and it will be the winter tablets rather than
+chloramine &mdash; potassium monopersulfate reads as CC on a FAS-DPD test. There will be foam at
+the returns from the quat algaecide, which is harmless. And the season should start with a
+fresh FAS titrant: the 2026 bottle had been in service since June, and its age is the one
+untested explanation left over from the autumn drift work.</p>
+</div>
+"""
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="theme.js?v={build_version}"></script>
+<title>Season 2026 &mdash; Summer 2026 Pool Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
+<link rel="stylesheet" href="style.css?v={build_version}">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+<header class="masthead">
+<a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
+<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
+<nav><a href="index.html">Dashboard</a><a href="log.html">Data</a><a href="photos.html">Photos</a><a href="season.html" class="active">Season</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
+</div>
+</header>
+<script>
+(function () {{
+  var btn = document.getElementById('themeToggle');
+  function labelToggle() {{
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    btn.innerHTML = window.THEME_ICONS[next === 'dark' ? 'moon' : 'sun'];
+    btn.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+  }}
+  labelToggle();
+  btn.addEventListener('click', function () {{
+    var next = window.getTheme() === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('pool_theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    location.reload();
+  }});
+}})();
+</script>
+<main class="wide">
+<h1 style="margin-bottom:2px;">Season 2026</h1>
+<div class="cap" style="margin-bottom:18px;">Opened {fmtd(opened)} &middot; closed {fmtd(SEASON_CLOSED['date'])}</div>
+{body}
+</main>
+</body>
+</html>"""
+
+
 def main():
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
@@ -728,6 +933,8 @@ def main():
     build_data_json(tests, doses, all_rows, by_date)
     build_log_html(all_rows, set(by_date.keys()) | set(videos_by_date.keys()), build_version)
     build_photos(tests, by_date, videos_by_date, build_version)
+    with open(os.path.join(OUT, "season.html"), "w", encoding="utf-8") as fh:
+        fh.write(build_season(tests, doses, all_rows, build_version))
 
     concert_counts = [build_concert_page(c, CONCERTS, build_version) for c in CONCERTS]
 

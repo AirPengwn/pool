@@ -14,7 +14,7 @@
 <header class="masthead">
 <a class="wordmark" href="index.html">Summer 2026 Pool Data</a>
 <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
-<nav><a href="index.html" class="active">Dashboard</a><a href="log.html">Data</a><a href="photos.html">Photos</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
+<nav><a href="index.html" class="active">Dashboard</a><a href="log.html">Data</a><a href="photos.html">Photos</a><a href="season.html">Season</a><a href="Pool_Log.xlsx">Download Full Log</a><a href="Taylor_K2006_Testing_Guide.docx">How I test</a></nav>
 <button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
 </div>
 </header>
@@ -44,7 +44,7 @@
 <main class="wide">
 
 <div class="card" id="heroCard" style="margin:20px 0 16px;">
-<div class="serif" style="font-size:16px;margin-bottom:12px;">Latest check</div>
+<div class="serif" id="heroTitle" style="font-size:16px;margin-bottom:12px;">Latest check</div>
 <div id="heroBody" style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;">Loading…</div>
 </div>
 
@@ -358,11 +358,34 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
   const now = new Date();
   const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const feat = (data.hero_features || {})[localToday] || data.hero_feature;
+  // Between closing and the spring opening the hero is a closing banner rather
+  // than a "latest check": the latest reading is weeks old by then and leading
+  // with it misreads as current. A dated HERO_FEATURE still wins, so birthdays
+  // keep working over the winter.
+  const closed = !feat ? (data.season_closed || null) : null;
   const featMedia = !feat ? ''
     : feat.photo ? `<img class="hero-feature-media hero-feature-photo" src="features/${feat.photo}" alt="${feat.caption}">`
     : `<video class="hero-feature-media hero-feature-video" src="photos/${feat.video}"
                autoplay muted loop playsinline
                aria-label="${feat.caption}"></video>`;
+  if (closed) {
+    document.getElementById('heroTitle').textContent = 'Season closed';
+    document.getElementById('heroBody').innerHTML = `
+      <div class="hero-feature">
+        <div class="hero-feature-caption serif">${closed.headline}</div>
+        <img class="hero-feature-media hero-feature-photo" src="${closed.photo}" alt="${closed.caption}">
+      </div>
+      <div>
+        <div class="stat-label">Closed</div>
+        <div class="hero-date" style="font-size:15px;">${fmtDate(closed.date)}</div>
+        <div class="loc">${closed.caption}</div>
+      </div>
+      ${stat('Days tested', String(meta.days_tested))}
+      ${stat('Chlorine used', `${meta.season_total_dose_gal.toFixed(1)} gal`)}
+      ${stat('Last reading', `${latest.fc.toFixed(1)} ppm`)}
+      <a class="moment-link" href="season.html">Read the season summary &rarr;</a>
+    `;
+  } else {
   document.getElementById('heroBody').innerHTML = `
     ${feat ? `<div class="hero-feature">
         <div class="hero-feature-caption serif">${feat.caption}</div>
@@ -383,6 +406,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
     ${latest.water_temp != null ? stat('Water temp', `${latest.water_temp.toFixed(1)}°F`) : ''}
     ${latest.sun_hrs != null ? stat('Sun that day', `${latest.sun_hrs.toFixed(1)} hrs`) : ''}
   `;
+  }
 
   const axisTitle = text => ({ display: true, text, color: '#8C8478', font: { size: 11, weight: '500' } });
 
