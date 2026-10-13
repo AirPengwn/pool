@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="theme.js?v=20261012215416"></script>
+<script src="theme.js?v=20261013015945"></script>
 <title>Summer 2026 Pool Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Fraunces:wght@500&display=swap">
-<link rel="stylesheet" href="style.css?v=20261012215416">
+<link rel="stylesheet" href="style.css?v=20261013015945">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -94,19 +94,9 @@
 </div>
 
 <div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">Total alkalinity over time</div>
-<div class="cap" style="margin-bottom:6px;" id="taCaption">Raw TA reading. Note: at this pool's high CYA, the reading runs high because CYA itself contributes carbonate alkalinity — see the testing guide.</div>
-<div style="position:relative;height:220px;">
-<canvas id="taChart" role="img" aria-label="Line chart of total alkalinity over the season"></canvas>
-</div>
-</div>
-
-<div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">CYA history</div>
-<div class="cap" style="margin-bottom:6px;" id="cyaCaption">Cyanuric acid, rechecked every few weeks (lowered only passively — no active drain-down)</div>
-<div style="position:relative;height:220px;">
-<canvas id="cyaChart" role="img" aria-label="Line chart of cyanuric acid over the season"></canvas>
-</div>
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Total alkalinity &amp; CYA</div>
+<div class="cap" style="margin-bottom:10px;" id="taCaption">Both are checked every few weeks rather than daily, so they are reported as readings, not trends. At this pool's high CYA the raw TA runs high, because CYA itself contributes carbonate alkalinity — see the testing guide.</div>
+<div id="taBody" style="display:flex;flex-wrap:wrap;gap:22px 30px;"></div>
 </div>
 
 </div>
@@ -117,14 +107,6 @@
 <div class="section-body">
 
 <div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">Weather vs. chlorine loss</div>
-<div class="cap" style="margin-bottom:6px;">Sun hours that day vs. FC lost by the next test</div>
-<div style="position:relative;height:240px;">
-<canvas id="weatherLossChart" role="img" aria-label="Scatter plot of sun hours versus free chlorine loss"></canvas>
-</div>
-</div>
-
-<div class="card">
 <div class="serif" style="font-size:16px;margin-bottom:2px;">Water temperature vs. chlorine loss</div>
 <div class="cap" style="margin-bottom:6px;">Warmer water raises chlorine demand</div>
 <div style="position:relative;height:240px;">
@@ -133,16 +115,8 @@
 </div>
 
 <div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">Rainfall vs. chlorine loss</div>
-<div class="cap" style="margin-bottom:6px;">Precipitation that day vs. FC lost by the next test</div>
-<div style="position:relative;height:240px;">
-<canvas id="rainLossChart" role="img" aria-label="Scatter plot of rainfall versus free chlorine loss"></canvas>
-</div>
-</div>
-
-<div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">Chlorine added vs. FC loss</div>
-<div class="cap" style="margin-bottom:6px;">Gallons dosed since the prior test vs. FC lost by this test</div>
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Dose calibration check</div>
+<div class="cap" style="margin-bottom:6px;">Gallons dosed since the prior test vs. FC lost by this test. <strong>A flat, shapeless cloud is the correct result</strong> — the loss figure already subtracts the dose, so any slope here would mean the 3.84 ppm-per-gallon constant is wrong. Season r = +0.005.</div>
 <div style="position:relative;height:240px;">
 <canvas id="doseLossChart" role="img" aria-label="Scatter plot of chlorine added versus free chlorine loss"></canvas>
 </div>
@@ -196,8 +170,8 @@
 </div>
 
 <div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">Chlorine efficiency</div>
-<div class="cap" style="margin-bottom:10px;">Experimental metric: average FC maintained per gallon of chlorine used this season. Higher means you're getting more sanitizer per gallon.</div>
+<div class="serif" style="font-size:16px;margin-bottom:2px;">Chlorine budget</div>
+<div class="cap" style="margin-bottom:10px;">What it took to hold the band: the average free chlorine maintained, the total poured, and the weekly rate. Gallons per week is the figure worth comparing year to year — a season total just reflects how long the pool was open.</div>
 <div id="efficiencyBody" style="display:flex;justify-content:center;gap:28px;flex-wrap:wrap;"></div>
 </div>
 
@@ -237,25 +211,6 @@
 <canvas id="predErrChart" role="img" aria-label="Bar chart of prediction error (actual minus predicted next-noon free chlorine) per day"></canvas>
 </div>
 <div class="cap" id="predErrNote" style="margin-top:8px;"></div>
-</div>
-
-<div class="card">
-<div class="serif" style="font-size:16px;margin-bottom:2px;">Prediction error vs. sun</div>
-<div class="cap" style="margin-bottom:6px;">Does the model miss more on sunny days? Dose-day sun hours vs. that prediction's error.</div>
-<div style="position:relative;height:220px;">
-<canvas id="predErrSunChart" role="img" aria-label="Scatter plot of prediction error versus dose-day sun hours"></canvas>
-</div>
-</div>
-
-<div class="card">
-<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
-<div class="serif" style="font-size:16px;">Weekly stability score</div>
-<span class="pill watch">first-draft scoring — tune later</span>
-</div>
-<div class="cap" style="margin:2px 0 8px;">Starts each week at 100. Docked for FC below floor, pH out of range, big day-over-day FC swings, high CC. Credited for tight prediction accuracy. Not a standard industry metric — a first cut, worth adjusting once there's more of a season to tune it against.</div>
-<div style="position:relative;height:200px;">
-<canvas id="stabilityChart" role="img" aria-label="Bar chart of a weekly pool stability score out of 100"></canvas>
-</div>
 </div>
 
 <div class="card">
@@ -510,15 +465,6 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
       (allNonNeg && withActual.length >= 3 ? ' Every prediction has come in at or below actual — a consistent lean toward over-estimating loss.' : '');
   }
 
-  // ---- Prediction error vs. sun (does the model miss more on sunny days?) ----
-  const sunByDate = {};
-  tests.forEach(t => { if (t.sun_hrs != null) sunByDate[t.date] = t.sun_hrs; });
-  const errSunPts = withActual
-    .filter(s => sunByDate[s.predDate] != null)
-    .map(s => ({ x: sunByDate[s.predDate], y: Math.round((s.actualFc - s.predFc) * 10) / 10, label: fmtDate(s.testDate) }));
-  scatterChart('predErrSunChart', errSunPts, COLOR.teal, 'Dose-day sun (hrs)', 'circle',
-    { yTitle: 'Pred error (ppm)', tipUnit: 'ppm error', yMin: undefined });
-
   // ---- FC gauge ----
   const gaugeMax = 25;
   const zoneData = [meta.fc_floor, SAFE_SWIM_CEILING - meta.fc_floor, gaugeMax - SAFE_SWIM_CEILING];
@@ -629,9 +575,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
                   x: { min: 0, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle(xLabel) } } }
     });
   }
-  scatterChart('weatherLossChart', tests.filter(t => t.fc_loss != null && t.sun_hrs != null).map(t => ({ x: t.sun_hrs, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.amber, 'Sun (hrs)', 'circle');
   scatterChart('tempLossChart', tests.filter(t => t.fc_loss != null && t.water_temp != null).map(t => ({ x: t.water_temp, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.coral, 'Water temp (°F)', 'triangle');
-  scatterChart('rainLossChart', tests.filter(t => t.fc_loss != null && t.rain_in != null).map(t => ({ x: t.rain_in, y: t.fc_loss, label: fmtDate(t.date) })), COLOR.teal, 'Rain (in)', 'rectRot');
 
   const doseLossPts = [];
   for (let i = 1; i < tests.length; i++) {
@@ -643,18 +587,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
   }
   scatterChart('doseLossChart', doseLossPts, COLOR.green, 'Chlorine added (gal)', 'star');
 
-  // ---- pH / TA / CYA trends ----
-  function lineChart(canvasId, pts, valueKey, color, yLabel) {
-    const ptDates = pts.map(t => fmtDate(t.date));
-    const ptVals = pts.map(t => t[valueKey]);
-    new Chart(document.getElementById(canvasId), {
-      type: 'line',
-      data: { labels: ptDates, datasets: [{ data: ptVals, borderColor: color, backgroundColor: color, borderWidth: 2.5, pointRadius: 5, tension: 0.2 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-        scales: { y: { grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle(yLabel) },
-                  x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Date') } } }
-    });
-  }
+  // ---- pH trend ----
   const phPts = tests.filter(t => t.ph != null);
   new Chart(document.getElementById('phChart'), {
     type: 'line',
@@ -669,15 +602,22 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
   });
   if (phPts.length < 5) document.getElementById('phCaption').textContent += ` — only ${phPts.length} reading${phPts.length === 1 ? '' : 's'} so far this season.`;
 
+  // TA and CYA are occasional spot checks -- six and two readings respectively
+  // across 2026. Drawn as line charts they implied a trend that two points
+  // cannot support, so they are reported as readings instead (2026-10-12).
   const taPts = tests.filter(t => t.ta != null);
-  lineChart('taChart', taPts, 'ta', COLOR.amber, 'TA (ppm)');
-  if (taPts.length < 5) document.getElementById('taCaption').textContent += ` Only ${taPts.length} reading${taPts.length === 1 ? '' : 's'} so far.`;
-
   const cyaPts = tests.filter(t => typeof t.cya === 'number');
-  lineChart('cyaChart', cyaPts, 'cya', COLOR.coral, 'CYA (ppm)');
-  const cyaExcluded = tests.filter(t => t.cya != null && typeof t.cya !== 'number').length;
-  if (cyaPts.length < 5) document.getElementById('cyaCaption').textContent += ` Only ${cyaPts.length} numeric reading${cyaPts.length === 1 ? '' : 's'} so far` +
-    (cyaExcluded ? ` (${cyaExcluded} earlier approximate old-reagent reading${cyaExcluded === 1 ? '' : 's'} excluded).` : '.');
+  const rng = (pts, key, dp) => {
+    const v = pts.map(t => t[key]);
+    const lo = Math.min(...v), hi = Math.max(...v);
+    return lo === hi ? lo.toFixed(dp) : `${lo.toFixed(dp)}–${hi.toFixed(dp)}`;
+  };
+  document.getElementById('taBody').innerHTML = taPts.length || cyaPts.length ? `
+    ${taPts.length ? stat('Total alkalinity', `${rng(taPts, 'ta', 0)} ppm`) : ''}
+    ${taPts.length ? stat('TA checks', `${taPts.length}, last ${fmtDate(taPts[taPts.length - 1].date)}`) : ''}
+    ${cyaPts.length ? stat('CYA', `${rng(cyaPts, 'cya', 0)} ppm`) : ''}
+    ${cyaPts.length ? stat('CYA checks', `${cyaPts.length}, last ${fmtDate(cyaPts[cyaPts.length - 1].date)}`) : ''}
+  ` : '<div class="cap">No TA or CYA readings logged yet this season.</div>';
 
   // ---- Cumulative chlorine used ----
   new Chart(document.getElementById('cumClChart'), {
@@ -722,45 +662,17 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
     });
   }
 
-  // ---- Chlorine efficiency ----
+  // ---- Chlorine budget ----
   const fcValsAll = tests.map(t => t.fc).filter(v => v != null);
   const avgFc = fcValsAll.reduce((a, b) => a + b, 0) / fcValsAll.length;
-  const efficiency = meta.season_total_dose_gal ? avgFc / meta.season_total_dose_gal : null;
+  // The old "efficiency" figure divided average FC by total gallons, which mostly
+  // measured how long the season was -- a longer season always scored worse while
+  // nothing about the pool had changed. Gallons per week is the comparable number.
   document.getElementById('efficiencyBody').innerHTML = `
     ${stat('Average FC maintained', avgFc.toFixed(1) + ' ppm')}
     ${stat('Total chlorine used', meta.season_total_dose_gal.toFixed(1) + ' gal')}
-    ${stat('Efficiency', efficiency != null ? efficiency.toFixed(2) + ' ppm/gal' : '—')}
+    ${stat('Gallons per week', (meta.season_total_dose_gal / Math.max(1, weekLabels.length)).toFixed(2))}
   `;
-
-  // ---- Weekly stability score (first-draft rubric, see caption) ----
-  const scoreWeeks = {};
-  function ensureScoreWeek(iso) {
-    const wl = weekLabel(iso);
-    if (!scoreWeeks[wl]) scoreWeeks[wl] = 100;
-    return wl;
-  }
-  tests.forEach(t => {
-    const wl = ensureScoreWeek(t.date);
-    if (t.fc != null && t.fc < meta.fc_floor) scoreWeeks[wl] -= 5;
-    if (t.ph != null && (t.ph < 7.2 || t.ph > 7.8)) scoreWeeks[wl] -= 5;
-    if (t.cc != null && t.cc > 0.5) scoreWeeks[wl] -= 3;
-  });
-  for (let i = 1; i < tests.length; i++) {
-    if (tests[i].fc == null || tests[i - 1].fc == null) continue;
-    if (Math.abs(tests[i].fc - tests[i - 1].fc) > 5) scoreWeeks[ensureScoreWeek(tests[i].date)] -= 3;
-  }
-  withActual.forEach(s => {
-    if (Math.abs(s.actualFc - s.predFc) <= 1) scoreWeeks[ensureScoreWeek(s.testDate)] += 2;
-  });
-  const scoreWeekLabels = Object.keys(scoreWeeks);
-  const scoreWeekVals = scoreWeekLabels.map(l => Math.max(0, Math.min(100, scoreWeeks[l])));
-  new Chart(document.getElementById('stabilityChart'), {
-    type: 'bar',
-    data: { labels: scoreWeekLabels, datasets: [{ data: scoreWeekVals, backgroundColor: scoreWeekVals.map(s => s >= 90 ? COLOR.green : s >= 75 ? COLOR.amber : COLOR.red), borderRadius: 5, maxBarThickness: 60 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-      scales: { y: { min: 0, max: 100, grid: { color: gridColor }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Score') },
-                x: { grid: { display: false }, ticks: { color: '#8C8478', font: { size: 11 } }, title: axisTitle('Week') } } }
-  });
 
   // ---- Season so far ----
   const maxBy = key => tests.filter(t => t[key] != null).reduce((a, b) => (!a || b[key] > a[key]) ? b : a, null);
@@ -780,7 +692,7 @@ fetch('data.json', { cache: 'no-store' }).then(r => r.json()).then(data => {
     ${stat('Rainiest day', rainiest ? `${rainiest.rain_in.toFixed(2)}" (${fmtDate(rainiest.date)})` : '—')}
     ${stat('Total chlorine used', meta.season_total_dose_gal.toFixed(1) + ' gal')}
     ${stat('Avg. gal / week', (meta.season_total_dose_gal / Math.max(1, weekLabels.length)).toFixed(1))}
-    ${stat('Tests logged', allTests.length)}
+    ${stat('Tests logged', `${meta.titrations} over ${meta.days_tested} days`)}
     ${stat('Doses logged', doses.length)}
     ${stat('"Perfect" days', `${perfectDays} (FC in band + CC ≤0.5)`)}
   `;
